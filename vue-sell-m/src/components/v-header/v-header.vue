@@ -1,5 +1,5 @@
 <template>
-  <div class="header">
+  <div class="header" @click="showDetail">
     <!-- 总体上方区域 -->
     <div class="content-wrapper">
       <!-- header左边区域 -->
@@ -52,6 +52,16 @@
         }
       }
     },
+    methods: {
+      showDetail() {
+        this.headerDetailComp = this.headerDetailComp || this.$createHeaderDetail({
+          $props: {
+            seller: 'seller'
+          }
+        })
+        this.headerDetailComp.show()
+      }
+    },
     components: {
       SupportIco
     }
@@ -85,7 +95,7 @@
           .brand
             width: 30px
             height: 18px
-            bg-image('brand')// kankankanknaknkanaknaknak
+            bg-image('brand')
             background-size: 30px 18px
             background-repeat: no-repeat
           .name
