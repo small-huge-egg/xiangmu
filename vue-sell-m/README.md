@@ -206,3 +206,4 @@ onChange (current) {
 ### 更改cube-ui颜色文件，记住如果更改的颜色是自定义的颜色，请把冒号删掉
 ### 在完成点击slide引起tab改变时，我大脑抽筋把文档给的change事件写成o@click事件了，一直没效果也不报错。
 ### 调用onChange，明日任务
+(https://www.cnblogs.com/zhaobao1830/p/9978505.html)
