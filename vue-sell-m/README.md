@@ -201,9 +201,22 @@ onChange (current) {
   }
 }
 ```
+5. 制作添加删除菜按钮
+### vue中$set的使用
+### 当从父组件中传来的food.count不存在时，点击"➕"按钮，使count+1
+* 值得注意的是food在父组件的data中并没有count这个属性，对于响应系统，vue不会遍历count这个属性
+> 解决方法： 通过Vue.$set方法设置data属性：
+```
+  add() {
+    if (!this.food.count) {
+      Vue.set(this.food, 'count', 1)
+    }
+  }
+```
 # 小坑大花费
 ### 今天的坑是用stylus写样式，因为缩进问题导致图片没加载出来，因为他根本找不到此处有这个class,就不给我安排
 ### 更改cube-ui颜色文件，记住如果更改的颜色是自定义的颜色，请把冒号删掉
 ### 在完成点击slide引起tab改变时，我大脑抽筋把文档给的change事件写成o@click事件了，一直没效果也不报错。
-### 调用onChange，明日任务
+### 调用fetch
+#### 为了避免浪费内存，选择在tab.vue中slide滑动时触发获取事件，然后在mouted生命周期的时候派发这个事件，此时我没有设置默认的index值，导致页面加载不出来
 (https://www.cnblogs.com/zhaobao1830/p/9978505.html)

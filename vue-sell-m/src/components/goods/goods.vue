@@ -33,6 +33,7 @@
                   <span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                 </div>
                 <div class="cart-control-wrapper">
+                  <cart-control :food="food"></cart-control>
                 </div>
               </div>
             </li>
@@ -40,11 +41,20 @@
         </cube-scroll-nav-panel>
       </cube-scroll-nav>
     </div>
+    <div class="shop-cart-wrapper">
+      <shop-cart
+                :deliveryPrice="seller.deliveryPrice"
+                :minPrice="seller.minPrice"
+                :selectFoods="selectFoods"></shop-cart>
+    </div>
   </div>
 </template>
 
 <script>
   import { getGoods } from 'api'
+  import ShopCart from 'components/shop-cart/shop-cart'
+  import CartControl from 'components/cart-control/cart-control'
+
   export default {
     name: 'goods',
     props: {
@@ -57,8 +67,7 @@
     },
     data() {
       return {
-        goods: [],
-        selectedFood: {},
+        goods: [], // 存放商品数据
         scrollOptions: { // :options="scrollOptions" tabbar提供的
           click: false, // 会点击俩次，底层用的是scroll，所以设置click为false
           directionLockThreshold: 0
@@ -71,6 +80,26 @@
           this.goods = goods
         })
       }
+    },
+    computed: {
+      seller() {
+        return this.data.seller
+      },
+      selectFoods() {
+        let ret = []
+        this.goods.forEach((good) => {
+          good.foods.forEach((food) => {
+            if (food.count) {
+              ret.push(food)
+            }
+          })
+        })
+        return ret
+      }
+    },
+    components: {
+      ShopCart,
+      CartControl
     }
   }
 </script>

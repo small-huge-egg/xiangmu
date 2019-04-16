@@ -60,9 +60,7 @@
       // this.index改变的话，会触发selectedLabel重新计算，然后cube-tab就会进行新的计算，就可以完成切换了
       onChange (current) {
         this.index = current // 更改当前索引值
-        console.log(current)
         const component = this.$refs.component[current] // 获取当前组件 因为在一个列表上，所以是一个数组
-        console.log(component)
         component.fetch && component.fetch() // 当component定义了fetch方法我们才调用这个fetch方法，从而渲染对应数据
       },
 
