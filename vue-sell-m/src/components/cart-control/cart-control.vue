@@ -1,5 +1,6 @@
 <template>
   <div class="cartcontrol">
+    <!-- 该模块是加号减号区域，父组件是goods组件 -->
     <transition name="move">
       <!-- 减号 当有商品的时候显示-->
       <div class="cart-decrease" v-show="food.count>0" @click.stop="decrease">
@@ -12,13 +13,13 @@
     <div class="cart-add icon-add_circle" @click.stop="add"></div>
   </div>
 </template>
+
 <script>
-// import Vue from 'vue'
+
+const EVENT_ADD = 'add'
+
 export default {
   name: 'cart-control',
-  // data() {
-  //   return {}
-  // },
   props: {
     food: {
       type: Object
@@ -26,12 +27,13 @@ export default {
   },
   methods: {
     // 定义加入购物车
-    add() {
+    add(event) {
       if (!this.food.count) {
         this.$set(this.food, 'count', 1)
       } else {
         this.food.count++
       }
+      this.$emit(EVENT_ADD, event.target) // 将点击的dom传给goods父组件
     },
     // 定义减号按钮方法
     decrease() {

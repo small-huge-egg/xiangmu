@@ -213,6 +213,53 @@ onChange (current) {
     }
   }
 ```
+6. 实现小球飞入动画
+> 效果：页面可以有多个小球飞入底部购物车。
+7. 父组件触发子组件的方法：
+* 子组件：
+```
+<template>
+<div>
+  child
+</div>
+</template>
+
+<script>
+export default {
+  name: "child",
+  props: "someprops",
+  methods: {
+    parentHandleclick(e) {
+      console.log(e)
+    }
+  }
+}
+</script>
+```
+* 父组件
+```
+<template>
+  <div>
+    <button @click="clickParent">点击</button>
+    <child ref="mychild"></child>
+  </div>
+</template>
+ 
+<script>
+  import Child from './child';
+  export default {
+    name: "parent",
+    components: {
+      child: Child
+    },
+    methods: {
+      clickParent() {
+        this.$refs.mychild.parentHandleclick("嘿嘿嘿"); // 触发子组件的方法
+      }
+    }
+  }
+</script>
+```
 # 小坑大花费
 ### 今天的坑是用stylus写样式，因为缩进问题导致图片没加载出来，因为他根本找不到此处有这个class,就不给我安排
 ### 更改cube-ui颜色文件，记住如果更改的颜色是自定义的颜色，请把冒号删掉

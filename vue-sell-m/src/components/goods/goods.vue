@@ -33,7 +33,7 @@
                   <span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                 </div>
                 <div class="cart-control-wrapper">
-                  <cart-control :food="food"></cart-control>
+                  <cart-control :food="food" @add="onAdd"></cart-control>
                 </div>
               </div>
             </li>
@@ -43,6 +43,7 @@
     </div>
     <div class="shop-cart-wrapper">
       <shop-cart
+                ref="shopCart"
                 :deliveryPrice="seller.deliveryPrice"
                 :minPrice="seller.minPrice"
                 :selectFoods="selectFoods"></shop-cart>
@@ -79,6 +80,9 @@
         getGoods().then((goods) => { // 获取后台数据
           this.goods = goods
         })
+      },
+      onAdd (el) { // 点击加号区域事件
+        this.$refs.shopCart.drop(el) // 操作购物车dom
       }
     },
     computed: {

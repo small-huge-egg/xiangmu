@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- 商品目录下的底部购物车 -->
+    <!-- 该组件是商品目录下的底部购物车  父组件是goods-->
     <div class="shopcart">
       <div class="content">
         <!-- 左半边区域 -->
@@ -26,11 +26,37 @@
           <div class="pay" :class="payClass">{{payDesc}}</div>
         </div>
       </div>
+      <!-- 购物车里的小球 -->
+      <div class="ball-container">
+        <div v-for="(ball, index) in balls" :key="index">
+          <transition
+            @before-enter="beforeDrop"
+            @enter="droping"
+            @after-enter="afterDrop"
+          >
+              <div class="ball" v-show="ball.show">
+                <div class="inner inner-hook"></div>
+              </div>
+          </transition>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 <script>
 import Bubble from 'components/bubble/bubble'
+
+const BALL_LEN = 10 // 小球个数
+// const innerClsHook = 'inner-hook'
+function createBalls () { // 将小球放在ret数组中，并且隐藏他们
+  let ret = []
+  for (let i = 0; i < BALL_LEN; i++) {
+    ret.push({
+      show: false
+    })
+  }
+  return ret
+}
 export default {
   name: 'shop-cart',
   props: {
@@ -51,12 +77,51 @@ export default {
   },
   data () {
     return {
+      balls: createBalls()
     }
   },
   components: {
     Bubble
   },
+  created() {
+    this.dropBalls = [] // 不放在data因为dropBalls仅仅是为了临时保存显示的小球，不做响应要求
+  },
   methods: {
+    drop(el) { // 接收从父组件goods传来的小球初始化位置的参数
+      for (let i = 0; i < this.balls.length; i++) {
+         const ball = this.balls[i]
+         if (!ball.show) {
+           ball.shoe = true
+           ball.el = el
+           this.dropBalls.push(ball) // 把显示的小球push进dropBalls去
+           return
+         }
+      }
+    },
+    beforeDrop(el) {
+      const ball = this.dropBalls[this.dropBalls.length - 1] // 最后一个被点的小球
+      const rect = ball.el.getBoundingClientRect() // 获取最后一个被点小球相对于屏幕的位置
+      const x = rect.left - 32
+      const y = -(window.innerHeight - rect.top - 22) // 为负 因为开始小球在购物车，我们要把小球挪到菜品的加号那
+      el.style.display = ''
+      el.style.transform = el.style.webitTransform = `translate3d(0,${y}px,0)` // y方向
+      const inner = el.getElementByClassName('inner-hook')[0]
+      inner.style.transform = inner.style.webkitTransform = `translate3d(${x}px,0,0)` // x偏移方向
+    },
+    droping(el, done) {
+      this._reflow = document.body.offsetHeight
+      el.style.transform = el.style.webitTransform = `translate3d(0,0,0)` // y方向 滚回原来位置
+      const inner = el.getElementByClassName('inner-hook')[0]
+      inner.style.transform = inner.style.webkitTransform = `translate3d(0,0,0)` // x 向原来位置进发
+      el.addEventListener('transitionend', done)
+    },
+    afterDrop(el) { // 结束动画，隐藏小球
+      const ball = this.dropBalls.shift() // 获取到第一个小球
+      if (ball) { // 如果存在显示的小球
+        ball.show = false // 隐藏
+        el.style.display = 'none'
+      }
+    }
   },
   computed: {
     totalPrice() { // 总共的价钱
