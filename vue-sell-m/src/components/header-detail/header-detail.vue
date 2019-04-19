@@ -46,7 +46,10 @@
 <script>
 import Star from 'components/star/star'// 导入星星组件
 import SupportIco from 'components/support-ico/support-ico'// 导入icon组件
+import popupMixin from 'common/mixins/popup'
+
 export default {
+  mixins: [popupMixin],
   name: 'header-detail',
   props: {
     seller: {

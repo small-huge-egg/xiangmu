@@ -23,7 +23,7 @@
         </div>
         <!-- 右半边区域 -->
         <div class="content-right">
-          <div class="pay" :class="payClass">{{payDesc}}</div>
+          <div class="pay" :class="payClass" @click="pay">{{payDesc}}</div>
         </div>
       </div>
       <!-- 购物车里的小球 -->
@@ -144,6 +144,16 @@ export default {
         this._hideShopCartList()
       }
     },
+    pay(e) {
+      if (this.totalPrice < this.minPrice) {
+        return
+      }
+      this.$createDialog({
+        title: '支付',
+        content: `您需要支付${this.totalPrice}元`
+      }).show()
+      e.stopPropagation()
+    },
     _showShopCartList() { // 将弹出层挂载到body上
       this.shopCartListComp = this.shopCartListComp || this.$createShopCartList({
         $props: { // create-api 提供，传递给组件的props
@@ -156,6 +166,9 @@ export default {
           },
           leave: () => {
             this._hideShopCartSticky()
+          },
+          add: (el) => {
+            this.shopCartStickyComp.drop(el)
           }
         }
       })
@@ -186,7 +199,7 @@ export default {
       this.listFold = newVal
     },
     totalCount(count) {
-      if (!this.fold && count === 0) {
+      if (!this.listFold && count === 0) {
         this._hideShopCartList()
       }
     }

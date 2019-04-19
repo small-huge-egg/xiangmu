@@ -15,7 +15,7 @@
             <!-- 上面说明部分 -->
             <div class="list-header">
               <h1 class="title">购物车</h1>
-              <span class="empty">清空</span>
+              <span class="empty" @click="empty">清空</span>
             </div>
             <!-- 下面菜名部分 -->
             <cube-scroll class="list-content" ref="listContent">
@@ -26,7 +26,7 @@
                     <span>￥{{food.price*food.count}}</span>
                   </div>
                   <div class="cart-control-wrapper">
-                    <cart-control :food="food"></cart-control>
+                    <cart-control :food="food" @add="onAdd"></cart-control>
                   </div>
                 </li>
               </ul>
@@ -40,11 +40,14 @@
 <script>
 // 导入加减按钮
 import CartControl from 'components/cart-control/cart-control'
+import popupMixin from 'common/mixins/popup'
 
 const EVENT_HIDE = 'hide'
 const EVENT_LEAVE = 'leave'
+const EVENT_ADD = 'add'
 
 export default {
+  mixins: [popupMixin],
   name: 'shop-cart-list', // 为了cereate-api调用该组件而设置
   props: { // 接收传来的被选食物，弄成一个数组
     selectFoods: {
@@ -54,14 +57,12 @@ export default {
       }
     }
   },
-  data() {
-    return {
-      visible: false // 设置弹出层隐藏
-    }
-  },
   methods: {
     show() { // 设置弹出层显示
       this.visible = true
+      this.$nextTick(() => {
+        this.$refs.listContent.refresh()
+      })
     },
     hide() { // 设置弹出层隐藏
       this.visible = false
@@ -72,6 +73,23 @@ export default {
     },
     maskClick() { // 点击弹出层
       this.hide()
+    },
+    onAdd(target) {
+      this.$emit(EVENT_ADD, target)
+    },
+    empty() {
+      this.dialogComp = this.$createDialog({
+        type: 'confirm',
+        content: '清空购物车？',
+        $events: {
+          confirm: () => {
+            this.selectFoods.forEach((food) => {
+              food.count = 0
+            })
+            this.hide()
+          }
+        }
+      }).show()
     }
   },
   components: {
