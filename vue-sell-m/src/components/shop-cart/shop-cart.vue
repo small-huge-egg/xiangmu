@@ -2,7 +2,7 @@
   <div>
     <!-- 该组件是商品目录下的底部购物车  父组件是goods-->
     <div class="shopcart">
-      <div class="content">
+      <div class="content" @click="toggleList">
         <!-- 左半边区域 -->
         <div class="content-left">
           <!-- 左半边 购物车图标 -->
@@ -17,7 +17,7 @@
             </div>
           </div>
           <!-- 左半边 价格总计 -->
-          <div class="price" :class="{'highlight':totalCount>0}">￥{{totalPrice}}</div>
+          <div class="price" :class="{'highlight':totalPrice>0}">￥{{totalPrice}}</div>
           <!-- 左半边 配送费区域 -->
           <div class="desc">另需配送费{{deliveryPrice}}元</div>
         </div>
@@ -47,7 +47,7 @@
 import Bubble from 'components/bubble/bubble'
 
 const BALL_LEN = 10 // 小球个数
-// const innerClsHook = 'inner-hook'
+const innerClsHook = 'inner-hook'
 function createBalls () { // 将小球放在ret数组中，并且隐藏他们
   let ret = []
   for (let i = 0; i < BALL_LEN; i++) {
@@ -73,11 +73,20 @@ export default {
     minPrice: { // 起送的最小价格
       type: Number,
       default: 0
+    },
+    fold: {
+      type: Boolean,
+      default: true
+    },
+    sticky: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
     return {
-      balls: createBalls()
+      balls: createBalls(),
+      listFold: this.fold
     }
   },
   components: {
@@ -91,7 +100,7 @@ export default {
       for (let i = 0; i < this.balls.length; i++) {
          const ball = this.balls[i]
          if (!ball.show) {
-           ball.shoe = true
+           ball.show = true
            ball.el = el
            this.dropBalls.push(ball) // 把显示的小球push进dropBalls去
            return
@@ -100,18 +109,18 @@ export default {
     },
     beforeDrop(el) {
       const ball = this.dropBalls[this.dropBalls.length - 1] // 最后一个被点的小球
-      const rect = ball.el.getBoundingClientRect() // 获取最后一个被点小球相对于屏幕的位置
+      const rect = ball.el.getBoundingClientRect() // 获取最后一个被点加号dom相对于屏幕的位置
       const x = rect.left - 32
       const y = -(window.innerHeight - rect.top - 22) // 为负 因为开始小球在购物车，我们要把小球挪到菜品的加号那
       el.style.display = ''
       el.style.transform = el.style.webitTransform = `translate3d(0,${y}px,0)` // y方向
-      const inner = el.getElementByClassName('inner-hook')[0]
+      const inner = el.getElementsByClassName(innerClsHook)[0]
       inner.style.transform = inner.style.webkitTransform = `translate3d(${x}px,0,0)` // x偏移方向
     },
     droping(el, done) {
       this._reflow = document.body.offsetHeight
       el.style.transform = el.style.webitTransform = `translate3d(0,0,0)` // y方向 滚回原来位置
-      const inner = el.getElementByClassName('inner-hook')[0]
+      const inner = el.getElementsByClassName(innerClsHook)[0]
       inner.style.transform = inner.style.webkitTransform = `translate3d(0,0,0)` // x 向原来位置进发
       el.addEventListener('transitionend', done)
     },
@@ -121,13 +130,71 @@ export default {
         ball.show = false // 隐藏
         el.style.display = 'none'
       }
+    },
+    toggleList() { // 点击购物车组件
+      if (this.listFold) { // 弹出层收起则展开
+        if (!this.totalCount) { // 如果没有商品，返回
+          return
+        }
+        this.listFold = false // 弹出层显示
+        this._showShopCartList()
+        this._shopCartSticky()
+      } else { // 如果弹出层为显示，那么给他隐藏
+        this.listFold = true
+        this._hideShopCartList()
+      }
+    },
+    _showShopCartList() { // 将弹出层挂载到body上
+      this.shopCartListComp = this.shopCartListComp || this.$createShopCartList({
+        $props: { // create-api 提供，传递给组件的props
+          selectFoods: 'selectFoods'
+        },
+        $events: { // create-api 提供，弹出层组件传来的事件回调
+          hide: () => {
+            this.listFold = true
+            this._hideShopCartSticky()
+          },
+          leave: () => {
+            this._hideShopCartSticky()
+          }
+        }
+      })
+      this.shopCartListComp.show()
+    },
+    _shopCartSticky() { // 将购物车弹出层挂载到body上
+      this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
+        $props: { // create-api 提供，传递给组件的props
+          selectFoods: 'selectFoods',
+          deliveryPrice: 'deliveryPrice',
+          minPrice: 'minPrice',
+          fold: 'listFold',
+          list: this.shopCartListComp
+        }
+      })
+      this.shopCartStickyComp.show()
+    },
+    _hideShopCartList() {
+      const comp = this.sticky ? this.$parent.list : this.shopCartListComp
+      comp.hide && comp.hide()
+    },
+    _hideShopCartSticky() {
+      this.shopCartStickyComp.hide()
+    }
+  },
+  watch: {
+    fold(newVal) {
+      this.listFold = newVal
+    },
+    totalCount(count) {
+      if (!this.fold && count === 0) {
+        this._hideShopCartList()
+      }
     }
   },
   computed: {
     totalPrice() { // 总共的价钱
       let total = 0
       this.selectFoods.forEach((food) => {
-        console.log(this.selectFoods)
         total += food.count * food.price
       })
       return total
@@ -160,20 +227,15 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-@import "../../common/stylus/mixin.styl"
-
+@import "~common/stylus/mixin"
+@import "~common/stylus/variable"
   .shopcart
-    position: fixed
-    left: 0
-    bottom: 0
-    z-index: 50
-    width: 100%
-    height: 48px
+    height: 100%
     .content
       display: flex
-      background: #141d27
+      background: $color-background
       font-size: 0
-      color: rgba(255, 255, 255, 0.4)
+      color: $color-light-grey
       .content-left
         flex: 1
         .logo-wrapper
@@ -187,35 +249,25 @@ export default {
           height: 56px
           box-sizing: border-box
           border-radius: 50%
-          background: #141d27
+          background: $color-background
           .logo
             width: 100%
             height: 100%
             border-radius: 50%
             text-align: center
-            background: #2b343c
+            background: $color-dark-grey
             &.highlight
-              background: rgb(0, 160, 220)
+              background: $color-blue
             .icon-shopping_cart
               line-height: 44px
-              font-size: 24px
-              color: #80858a
+              font-size: $fontsize-large-xxx
+              color: $color-light-grey
               &.highlight
-                color: #fff
+                color: $color-white
           .num
             position: absolute
             top: 0
             right: 0
-            width: 24px
-            height: 16px
-            line-height: 16px
-            text-align: center
-            border-radius: 16px
-            font-size: 9px
-            font-weight: 700
-            color: #fff
-            background: rgb(240, 20, 20)
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4)
         .price
           display: inline-block
           vertical-align: top
@@ -224,16 +276,16 @@ export default {
           padding-right: 12px
           box-sizing: border-box
           border-right: 1px solid rgba(255, 255, 255, 0.1)
-          font-size: 16px
           font-weight: 700
+          font-size: $fontsize-large
           &.highlight
-            color: #fff
+            color: $color-white
         .desc
           display: inline-block
           vertical-align: top
           margin: 12px 0 0 12px
           line-height: 24px
-          font-size: 10px
+          font-size: $fontsize-small-s
       .content-right
         flex: 0 0 105px
         width: 105px
@@ -241,13 +293,13 @@ export default {
           height: 48px
           line-height: 48px
           text-align: center
-          font-size: 12px
           font-weight: 700
+          font-size: $fontsize-small
           &.not-enough
-            background: #2b333b
+            background: $color-dark-grey
           &.enough
-            background: #00b43c
-            color: #fff
+            background: $color-green
+            color: $color-white
     .ball-container
       .ball
         position: fixed
@@ -259,7 +311,7 @@ export default {
           width: 16px
           height: 16px
           border-radius: 50%
-          background: rgb(0, 160, 220)
+          background: $color-blue
           transition: all 0.4s linear
     .shopcart-list
       position: absolute

@@ -215,6 +215,107 @@ onChange (current) {
 ```
 6. 实现小球飞入动画
 > 效果：页面可以有多个小球飞入底部购物车。
+#### 具体实现：
+##### 1.首先在底部购物车组件通过*循环创建10个隐藏的小球*，目的是可以有多个小球在页面上运动。(通过js命名一个函数，函数返回存放小球的数组，然后在data中保存这个函数，并赋值给balls)
+```
+具体做法代码：
+<!-- shop-cart.vue -->
+const BALL_LEN = 10 // 小球个数
+function createBalls () { // 将小球放在ret数组中，并且隐藏他们
+  let ret = []
+  for (let i = 0; i < BALL_LEN; i++) {
+    ret.push({
+      show: false
+    })
+  }
+  return ret
+}
+data () {
+  return {
+    balls: createBalls()
+  }
+},
+<!-- shop-cart.template -->
+<div class="ball-container">
+  <div v-for="(ball, index) in balls" :key="index">
+    <transition
+      @before-enter="beforeDrop"
+      @enter="droping"
+      @after-enter="afterDrop"
+    >
+        <div class="ball" v-show="ball.show">
+          <div class="inner inner-hook"></div>
+        </div>
+    </transition>
+  </div>
+</div>
+```
+##### 2.点击goods组件上的加号，让小球显示出来并实现动画。
+* 因为要知道小球运动前后落脚点，所以需要操作dom得知是哪个加号。于是cart-control向父组件goods传点击的dom
+```
+<!-- cart-control.vue -->
+// 定义加入购物车
+add(event) {
+  if (!this.food.count) {
+    this.$set(this.food, 'count', 1)
+  } else {
+    this.food.count++
+  }
+  this.$emit(EVENT_ADD, event.target) // 将点击的dom传给goods父组件
+},
+<!-- goods.vue -->
+<div class="cart-control-wrapper">
+  <cart-control :food="food" @add="onAdd"></cart-control>
+</div>
+onAdd (el) { // 点击加号，执行购物车子组件的drop事件，同时将el传给子组件，用于子组件操作小球动画
+  this.$refs.shopCart.drop(el) // 操作购物车dom,执行子组件drop方法
+}
+```
+##### 3.定义drop方法（在点击加号的时候把小球显示出来，并且把小球的el=传进来的加号的dom（我也不知道怎么可以这样神奇，可能我想错了吧），然后把显示的小球扔进dropBalls数组中，注意这个数组实在create生命周期定义，因为这是个临时数组，不用响应式）
+```
+drop(el) { // 接收从父组件goods传来的小球初始化位置的参数
+  for (let i = 0; i < this.balls.length; i++) {
+      const ball = this.balls[i]
+      if (!ball.show) {
+        ball.show = true
+        ball.el = el
+        this.dropBalls.push(ball) // 把显示的小球push进dropBalls去
+        return
+      }
+  }
+},
+```
+##### 4.发挥dropballs数组的时候到了——小球动画事件.
+* 在beforeDrop中：把最后一个被点击的小球显示出来，并且把它挪到被点的加号dom位置处（注意这里用ball.el获取dom）
+* 在droping 中，把小球挪到购物车位置，即原位置，注意这里的done结束动画
+* 在afterDrop中，获取droopBalls中的第一个小球，如果该小球还在显示，那么隐藏它，注意还要使ball.show=false
+```
+beforeDrop(el) {
+  const ball = this.dropBalls[this.dropBalls.length - 1] // 最后一个被点的小球
+  const rect = ball.el.getBoundingClientRect() // 获取最后一个被点加号相对于屏幕的位置
+  const x = rect.left - 32
+  const y = -(window.innerHeight - rect.top - 22) // 为负 因为开始小球在购物车，我们要把小球挪到菜品的加号那
+  el.style.display = ''
+  el.style.transform = el.style.webitTransform = `translate3d(0,${y}px,0)` // y方向
+  const inner = el.getElementsByClassName(innerClsHook)[0]
+  inner.style.transform = inner.style.webkitTransform = `translate3d(${x}px,0,0)` // x偏移方向
+},
+  droping(el, done) {
+    this._reflow = document.body.offsetHeight
+    el.style.transform = el.style.webitTransform = `translate3d(0,0,0)` // y方向 滚回原来位置
+    const inner = el.getElementsByClassName(innerClsHook)[0]
+    inner.style.transform = inner.style.webkitTransform = `translate3d(0,0,0)` // x 向原来位置进发
+    el.addEventListener('transitionend', done)
+  },
+  afterDrop(el) { // 结束动画，隐藏小球
+    const ball = this.dropBalls.shift() // 获取到第一个小球
+    if (ball) { // 如果存在显示的小球
+      ball.show = false // 隐藏
+      el.style.display = 'none'
+    }
+  }
+},
+```
 7. 父组件触发子组件的方法：
 * 子组件：
 ```
@@ -260,6 +361,101 @@ export default {
   }
 </script>
 ```
+8. 插槽
+(https://blog.csdn.net/hani_wen/article/details/80805415)
+9. 实现侧边栏菜品数目红球
+> 这里用到了作用域插槽。原因：这里的红色小球是父组件的子组件。
+```
+<template slot="bar" slot-scope="props">
+  <cube-scroll-nav-bar
+    direction="vertical"
+    :labels="props.labels"
+    :txts="barTxts"
+    :current="props.current"
+  >
+    <template slot-scope="props">
+      <div class="text">
+        <support-ico
+          v-if="props.txt.type>=1"
+          :size=3
+          :type="props.txt.type"
+        ></support-ico>
+        <span>{{props.txt.name}}</span>
+        <span class="num" v-if="props.txt.count">
+          <bubble :num="props.txt.count"></bubble>
+        </span>
+      </div>
+    </template>
+  </cube-scroll-nav-bar>
+</template>
+```
+10. 购物车总列表（cube-ui->popup）
+```
+<!-- shop-cart-list -->
+<cube-popup
+  v-show="visible"
+  :mask-closable=true // popup配置 是否显示背景层
+  :z-index=90
+  position="bottom" // popup配置 内容展现位置
+  type="shop-cart-list" // popup配置 设置弹层类型，相当于加了一个cube-shop-cart-list的class,这里用于改变弹层位置
+  @mask-click="maskClick" // popup事件 背景层点击，参数：点击事件对象
+>
+<!-- shop-cart -->
+<div class="content" @click="toggleList">
+ created() {
+    this.dropBalls = [] // 不放在data因为dropBalls仅仅是为了临时保存显示的小球，不做响应要求
+    this.listFold = true // 默认弹出层是收起的
+  },
+ toggleList() { // 点击购物车组件
+  if (this.listFold) { // 弹出层收起则展开
+    if (!this.totalCount) { // 如果没有商品，返回
+      return
+    }
+    this.listFold = false // 弹出层显示
+    this._showShopCartList()
+  } else { // 如果弹出层为显示，那么给他隐藏
+    this.listFold = true
+    this._hideShopCartList()
+  }
+},
+_showShopCartList() {
+  this.shopCartListComp = this.shopCartListComp || this.$createShopCartList({
+    $props: {
+      selectFoods: 'selectFoods'
+    }
+  })
+  this.shopCartListComp.show()
+},
+_hideShopCartList() {
+  this.shopCartListComp.hide()
+}
+},
+```
+> 这样会发现一个bug，因为只设置了点击购物车部分的troggle，但是如果点击的是其他部分，并没有告诉listFold=true,以至于弹出层虽然隐藏了但是再次点击时要点两下才会显示
+* 解决办法：
+```
+<!-- shop-cart -->
+_showShopCartList() { // 将弹出层挂载到body上
+  this.shopCartListComp = this.shopCartListComp || this.$createShopCartList({
+    $props: { // create-api 提供，传递给组件的props
+      selectFoods: 'selectFoods'
+    },
+    $events: { // create-api 提供，弹出层组件传来的事件回调
+      hide: () => {
+        this.listFold = true
+      }
+    }
+  })
+  this.shopCartListComp.show()
+},
+<!-- shop-cart-list -->
+const EVENT_HIDE = 'hide'
+hide() { // 设置弹出层隐藏
+  this.visible = false
+  this.$emit(EVENT_HIDE)
+},
+```
+* 购物车弹出层完成，发现bug:该组件盖住了购物车图片。因为弹出层在body挂载，层级高，单纯改变层级没有用，so,解决办法：再通过create-api创建一个购物车弹出层
 # 小坑大花费
 ### 今天的坑是用stylus写样式，因为缩进问题导致图片没加载出来，因为他根本找不到此处有这个class,就不给我安排
 ### 更改cube-ui颜色文件，记住如果更改的颜色是自定义的颜色，请把冒号删掉
