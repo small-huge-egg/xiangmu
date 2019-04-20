@@ -456,6 +456,189 @@ hide() { // 设置弹出层隐藏
 },
 ```
 * 购物车弹出层完成，发现bug:该组件盖住了购物车图片。因为弹出层在body挂载，层级高，单纯改变层级没有用，so,解决办法：再通过create-api创建一个购物车弹出层
+11. 商品详情页
+![](source/商品详情.png)
+### 11.1 create-api建立food组件
+* create-api注册food组件
+```
+代码：register.js
+import Food from 'components/food/food'
+createAPI(Vue, Food)
+```
+* food组件引入popup.js，为了优化代码。（用于显示/隐藏页面）
+```
+代码：food.vue
+import popupMixin from 'common/mixins/popup'
+export default {
+  name: 'food',
+  mixins: [popupMixin],
+} 
+```
+* 返回按钮，回到goods页面
+```
+代码：food.vue
+<div class="back" @click="hide">
+  <i class="icon-arrow_lift"></i>
+</div>
+```
+* food组件引入cube-scroll，为了实现页面滚动
+```
+代码：food.vue
+<cube-scroll ref="scroll"></cube-scroll>
+包裹住页面内容区域
+```
+* 分析：food组件需要知道菜名、菜名所对应的（图片、月售份数、价钱、好评率、评价）
+```
+代码：food.vue
+props: {
+  food: {
+    type: Object
+  }
+},
+```
+### 11.2 goods组件点击对应菜品弹出food详情页
+* 点击某项菜品，弹出food组件，传递selectedFood
+```
+代码：goods.vue
+<li
+  @click="selectFood(food)" // 新添加：------注册点击事件
+  v-for="food in good.foods"
+  :key="food.name"
+  class="food-item"
+>
+data() {
+  return {
+    goods: [], // 存放商品数据
+    scrollOptions: { // :options="scrollOptions" tabbar提供的
+      click: false, // 会点击俩次，底层用的是scroll，所以设置click为false
+      directionLockThreshold: 0
+    },
+    selectedFood: {}  //------ 新添加：存放所点击的菜品信息
+  }
+},
+selectFood (food) { // 点击某项菜品
+  this.selectedFood = food
+  this._showFood()
+},
+_showFood() { // 通过create-api将food组件挂载到goods.vue
+  this.foodComp = this.foodComp || this.$createFood({
+    $props: { // 向food传递selectedFood
+      food: 'seletedFood'
+    }
+  })
+  this.foodComp.show()
+}
+```
+### 11.3 发现详情页不能滚动，so refresh一下
+```
+代码：food.vue
+const EVENT_SHOW = 'show'
+created() { // 因为页面不能滚动，so refresh一下
+  this.$on(EVENT_SHOW, () => {
+    this.$nextTick(() => {
+      this.$refs.scroll.refresh()
+    })
+  })
+},
+```
+### 11.4 发现底部购物车被掩盖，调用sticky组件
+```
+代码：goods.vue
+_shopCartSticky() { // 将底部购物车挂载到body上
+  this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
+    $props: { // create-api 提供，传递给组件的props
+      selectFoods: 'selectFoods',
+      deliveryPrice: this.seller.deliveryPrice,
+      minPrice: this.seller.minPrice,
+      fold: true
+    }
+  })
+  this.shopCartStickyComp.show()
+}
+```
+### 11.5 返回到goods页面，控制sticky组件消失
+```
+代码：food.vue
+<transition
+  name="move"
+  @after-leave="afterLeave" // 新增------返回则消失sticky
+>
+const EVENT_LEAVE = 'leave'
+methods: {
+  afterLeave() {
+    this.$emit(EVENT_LEAVE)
+  },
+}
+代码：goods.vue
+_showFood() { // 创建food组件
+  this.foodComp = this.foodComp || this.$createFood({
+    $props: {
+      food: 'seletedFood'
+    },
+    $events: { // 新增-------
+      leave: () => {
+        this._hideShopCartList()
+      }
+    }
+  })
+  this.foodComp.show()
+},
+_hideShopCartList() {
+  this.shopCartStickyComp.hide()
+}
+```
+### 11.6 food页面的加入购物车按钮——安排
+```
+代码： food.vue
+<transition name="fade">
+  <div @click="addFirst" class="buy" v-show="!food.count">
+    加入购物车
+  </div>
+</transition>
+const EVENT_ADD = 'add'
+addFirst(event) {
+  this.$set(this.food, 'count', 1) // 注意这的$set，因为data中的数据不能在更新后自动更新到视图
+  this.$emit(EVENT_ADD, event.target) // 为了调用shopcartStickty的drop方法
+},
+代码：goods.vue
+ _showFood() { // 创建food组件
+  this.foodComp = this.foodComp || this.$createFood({
+    $props: {
+      food: 'seletedFood'
+    },
+    $events: {
+      leave: () => {
+        this._hideShopCartList()
+      },
+      add: (el) => { // 新增-----
+        this.shopCartStickyComp.drop(el) //调用shopcartStickty的drop方法
+      }
+    }
+  })
+  this.foodComp.show()
+},
+```
+### 11.7 food页面的加入商品评论
+* 评论写在computed里面，为了引入方便，直接ratings解决。且用v-show接收，用来判断是否存在评论
+```
+代码：food.vue
+<ul v-show="ratings && ratings.length">
+computed: {
+  ratings() {
+    return this.food.ratings
+  }
+},
+```
+* 过滤时间——引入moment.js
+```
+1.安装moment.js：npm install moment --save
+2.food.vue导入：import moment from 'moment'
+3.正式安排：
+<div class="time">{{format(rating.rateTime)}}</div>
+format(time) {
+  return moment(time).format('YYYY-MM-DD hh:mm')
+}
+```
 # 小坑大花费
 ### 今天的坑是用stylus写样式，因为缩进问题导致图片没加载出来，因为他根本找不到此处有这个class,就不给我安排
 ### 更改cube-ui颜色文件，记住如果更改的颜色是自定义的颜色，请把冒号删掉

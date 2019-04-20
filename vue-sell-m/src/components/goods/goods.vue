@@ -37,6 +37,7 @@
         >
           <ul>
             <li
+              @click="selectFood(food)"
               v-for="food in good.foods"
               :key="food.name"
               class="food-item"
@@ -65,10 +66,11 @@
     </div>
     <div class="shop-cart-wrapper">
       <shop-cart
-                ref="shopCart"
-                :deliveryPrice="seller.deliveryPrice"
-                :minPrice="seller.minPrice"
-                :selectFoods="selectFoods"></shop-cart>
+        ref="shopCart"
+        :deliveryPrice="seller.deliveryPrice"
+        :minPrice="seller.minPrice"
+        :selectFoods="selectFoods">
+      </shop-cart>
     </div>
   </div>
 </template>
@@ -96,17 +98,56 @@
         scrollOptions: { // :options="scrollOptions" tabbar提供的
           click: false, // 会点击俩次，底层用的是scroll，所以设置click为false
           directionLockThreshold: 0
-        }
+        },
+        selectedFood: {}
       }
     },
     methods: {
       fetch () { // 为了避免只加载某一个页面而渲染了所有页面造成数据浪费而生
-        getGoods().then((goods) => { // 获取后台数据
-          this.goods = goods
-        })
+        if (!this.fetched) { // fetched标志位意思是：已经获取过该页面
+          this.fetched = true
+          getGoods().then((goods) => { // 获取后台数据
+            this.goods = goods
+          })
+        }
       },
       onAdd (el) { // 点击加号区域事件
         this.$refs.shopCart.drop(el) // 操作购物车dom
+      },
+      selectFood (food) { // 点击某项菜品
+        this.selectedFood = food
+        this._showFood()
+        this._shopCartSticky() // 展示底部购物车sticky
+      },
+      _showFood() { // 创建food组件
+        this.foodComp = this.foodComp || this.$createFood({
+          $props: {
+            food: 'selectedFood'
+          },
+          $events: {
+            leave: () => {
+              this._hideShopCartList()
+            },
+            add: (el) => {
+              this.shopCartStickyComp.drop(el)
+            }
+          }
+        })
+        this.foodComp.show()
+      },
+      _shopCartSticky() { // 将底部购物车挂载到body上
+        this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
+          $props: { // create-api 提供，传递给组件的props
+            selectFoods: 'selectFoods',
+            deliveryPrice: this.seller.deliveryPrice,
+            minPrice: this.seller.minPrice,
+            fold: true
+          }
+        })
+        this.shopCartStickyComp.show()
+      },
+      _hideShopCartList() {
+        this.shopCartStickyComp.hide()
       }
     },
     computed: {

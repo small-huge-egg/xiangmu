@@ -42,9 +42,9 @@
 import CartControl from 'components/cart-control/cart-control'
 import popupMixin from 'common/mixins/popup'
 
-const EVENT_HIDE = 'hide'
 const EVENT_LEAVE = 'leave'
 const EVENT_ADD = 'add'
+const EVENT_SHOW = 'show'
 
 export default {
   mixins: [popupMixin],
@@ -57,17 +57,14 @@ export default {
       }
     }
   },
-  methods: {
-    show() { // 设置弹出层显示
-      this.visible = true
+  created() {
+    this.$on(EVENT_SHOW, () => {
       this.$nextTick(() => {
         this.$refs.listContent.refresh()
       })
-    },
-    hide() { // 设置弹出层隐藏
-      this.visible = false
-      this.$emit(EVENT_HIDE)
-    },
+    })
+  },
+  methods: {
     onLeave() {
       this.$emit(EVENT_LEAVE)
     },
