@@ -646,3 +646,5 @@ format(time) {
 ### 调用fetch
 #### 为了避免浪费内存，选择在tab.vue中slide滑动时触发获取事件，然后在mouted生命周期的时候派发这个事件，此时我没有设置默认的index值，导致页面加载不出来
 (https://www.cnblogs.com/zhaobao1830/p/9978505.html)
+# 完成总结
+## 关于总体

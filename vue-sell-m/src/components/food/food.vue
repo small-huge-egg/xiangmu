@@ -4,7 +4,7 @@
     @after-leave="afterLeave"
   >
     <div class="food" v-show="visible">
-      <cube-scroll ref="scroll">
+      <cube-scroll ref="scroll" :data="computedRatings">
         <div class="food-content">
           <div class="image-header">
             <img :src="food.image">
@@ -77,17 +77,16 @@
   import CartControl from 'components/cart-control/cart-control'
   import RatingSelect from 'components/rating-select/rating-select'
   import Split from 'components/split/split'
-  // import ratingMixin from 'common/mixins/rating'
+  import ratingMixin from 'common/mixins/rating'
   import popupMixin from 'common/mixins/popup'
 
   const EVENT_SHOW = 'show'
   const EVENT_ADD = 'add'
   const EVENT_LEAVE = 'leave'
 
-  const ALL = 2
   export default {
     name: 'food',
-    mixins: [popupMixin],
+    mixins: [popupMixin, ratingMixin],
     props: {
       food: {
         type: Object
@@ -99,9 +98,7 @@
           all: '全部',
           positive: '推荐',
           negative: '吐槽'
-        },
-        onlyContent: true,
-        selectType: ALL
+        }
       }
     },
     created() { // 因为页面不能滚动，so refresh一下
@@ -114,18 +111,6 @@
     computed: {
       ratings() {
         return this.food.ratings
-      },
-      computedRatings() {
-        let ret = []
-        this.ratings.forEach((rating) => {
-          if (this.onlyContent && !rating.text) {
-            return
-          }
-          if (this.selectType === ALL || this.selectType === rating.rateType) {
-            ret.push(rating)
-          }
-        })
-        return ret
       }
     },
     methods: {
@@ -141,12 +126,6 @@
       },
       format(time) {
         return moment(time).format('YYYY-MM-DD hh:mm')
-      },
-      onSelect(type) {
-        this.selectType = type
-      },
-      onToggle() {
-        this.onlyContent = !this.onlyContent
       }
     },
     components: {

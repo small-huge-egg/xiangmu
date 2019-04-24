@@ -106,7 +106,9 @@
       fetch () { // 为了避免只加载某一个页面而渲染了所有页面造成数据浪费而生
         if (!this.fetched) { // fetched标志位意思是：已经获取过该页面
           this.fetched = true
-          getGoods().then((goods) => { // 获取后台数据
+          getGoods({
+            id: this.seller.id
+          }).then((goods) => { // 获取后台数据
             this.goods = goods
           })
         }

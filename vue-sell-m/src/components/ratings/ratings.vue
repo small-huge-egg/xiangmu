@@ -1,5 +1,5 @@
 <template>
-  <cube-scroll ref="scroll" class="ratings" :options="scrollOptions">
+  <cube-scroll ref="scroll" class="ratings" :data="computedRatings" :options="scrollOptions">
     <div class="ratings-content">
       <div class="overview">
         <div class="overview-left">
@@ -31,6 +31,7 @@
         :selectType="selectType"
         :onlyContent="onlyContent"
         :ratings="ratings"
+        v-if="ratings.length"
       >
       </rating-select>
       <div class="rating-wrapper">
