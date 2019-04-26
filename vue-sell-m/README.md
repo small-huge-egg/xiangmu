@@ -647,4 +647,132 @@ format(time) {
 #### 为了避免浪费内存，选择在tab.vue中slide滑动时触发获取事件，然后在mouted生命周期的时候派发这个事件，此时我没有设置默认的index值，导致页面加载不出来
 (https://www.cnblogs.com/zhaobao1830/p/9978505.html)
 # 完成总结
-## 关于总体
+## 关于总体:
+> 目录：
+* 整体目录：
+* ![](source/整体目录.png)
+1. 详细文档在这里：(https://cli.vuejs.org/zh/config/#pwa)  模板文件是public里的index.html，运行项目的时候，会引用src/main.js（入口文件）。
+2. public：放着html模板和静态资源，public/index.html 文件是一个会被 html-webpack-plugin 处理的模板。在构建过程中，资源链接会被自动注入。
+3. .browserslistrc: 指定浏览器版本。不同的浏览器会有兼容性问题，比如css，我们会给它们加上前缀，这个文件是为postcss.config.js的Autoprefixer 插件使用的，Autoprefixer 插件依据browserslistrc 来添加前缀
+4. postcss.config.js: 里的autoprefixer就是依据.browserslistrc文件加前缀
+5. babel.config.js:  预设
+6. package.json: 各种依赖
+7. package-lock.json: 锁版本 管理版本的文件
+8. ealintrc.js: 规范代码格式
+9. data.json：保存所有数据，类似于后端的数据库
+* src目录：
+* ![](source/src目录.png)
+1. api: axios(http客户端)(https://www.jianshu.com/p/13cf01cdb81f)
+* 1.1 api>helpers.js: 封装axios，用于页面向后台发起请求
+* 1.2 api>index.js: 引用封装好的axios
+2. common：存放静态文件
+* 2.1 common>fonts: 存放字体文件
+* 2.2 common>js>storage.js: 存放本地存储
+* 2.3 common>mixins>popup.js: 控制展示和隐藏
+* 2.4 common>mixins>rating.js: 控制评论勾选“是否只展示带字评论”
+* 2.5 common>stylus>base.styl: 格式化样式代码
+* 2.6 common>stylus>icon.styl: 生成的图片样式文件
+* 2.7 common>stylus>index.styl: 导入base.styl、icon.styl
+* 2.8 common>stylus>mixin.styl: 导入cube-ui样式：@import "~cube-ui/src/common/stylus/mixin.styl"
+* 2.9 common>stylus>variable.styl: 存放所有颜色
+3. App.vue: 总的vue文件
+4. cube-ui.js: 管理cube-ui模块的引入
+5. main.js: 主js文件
+```
+import Vue from 'vue'
+import './cube-ui'
+import App from './App.vue'
+import './register'
+
+import 'common/stylus/index.styl'
+
+Vue.config.productionTip = false
+
+new Vue({
+  render: h => h(App)
+}).$mount('#app')
+
+```
+6. register.js: 给所需弹窗设置cube-ui下的create-api（在body下暴露组件，通常用于弹窗）
+7. theme.styl 管理cube-ui的颜色（修改颜色可以在这里面进行修改）
+## cube-ui插件：
+>(https://didi.github.io/cube-ui/#/zh-CN)
+```
+安装：vue add cube-ui
+```
+> 安装详情
+![](source/安装cube-ui.png)
+1. cube-ui.js 管理cube-ui模块的引入
+2. theme.styl 管理cube-ui的颜色（修改颜色可以在这里面进行修改）
+3. vue.config.js  类似以前的webpack.js文件，进行一些配置。
+* vue.config.js代码：
+```
+// 引入data.json文件，获取对应的数据
+const Path = require('path')
+const appData = require('./data.json')
+const seller = appData.seller
+const goods = appData.goods
+const ratings = appData.ratings
+
+// 定义resolve方法，让他拼上对应的地址
+function resolve(dir) {
+  return Path.join(__dirname, dir) // node.js方法，—_dirname表示当前目录
+}
+
+module.exports = {
+  css: {
+    loaderOptions: {
+      stylus: {
+        'resolve url': true,
+        'import': [
+          './src/theme'
+        ]
+      }
+    }
+  },
+  pluginOptions: {
+    'cube-ui': {
+      postCompile: true,
+      theme: true
+    }
+  },
+  devServer: {
+    before(app) {
+      app.get('/api/seller', function(req, res) {
+        const id = req.query.id
+        res.json({
+          errno: 0,
+          data: Object.assign({}, seller, { id }) // 将seller与id进行拼接
+        })
+      })
+      app.get('/api/goods', function(req, res) {
+        res.json({
+          errno: 0,
+          data: goods
+        })
+      })
+      app.get('/api/ratings', function(req, res) {
+        res.json({
+          errno: 0,
+          data: ratings
+        })
+      })
+    }
+  },
+  chainWebpack(config) {
+    config.resolve.alias
+      .set('components', resolve('src/components'))
+      .set('common', resolve('src/common'))
+      .set('api', resolve('src/api'))
+  }
+}
+
+```
+* 3.1 :这里面有自己添加了devServer.表示本地服务器，里面有个before方法，参数是app，可以在这里面定义接口(在开发模式下，DevServer 提供虚拟服务器，让我们进行开发和调试。而且提供实时重新加载。简直美滋滋。大大减少开发时间。例如里面定义的app.get('/api/seller',。启动服务后，在url输入http://localhost:8080/api/seller，可以看到对应地址的后台数据.)
+* 3.2 :chainWebpack(config):简化代码，避免调用src下的components,common,api时还要输入"src"
+## components组件目录
+* ![](source/components目录.png)
+### v-header: 主页面头部（商家门面）
+1. 分了三个部分：上方、下面的公告部分、背景部分
+2. 接收了app.vue组件传来的后台的seller信息
+3. 引入了support-ico组件，用于设置图片类型

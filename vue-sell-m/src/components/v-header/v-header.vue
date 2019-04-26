@@ -35,6 +35,7 @@
       <span class="bulletin-text">{{seller.bulletin}}</span>
       <i class="icon-keyboard_arrow_right"></i>
     </div>
+    <!-- 背景区域 -->
     <div class="background">
       <img :src="seller.avatar" width="100%" height="100%">
     </div>
