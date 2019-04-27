@@ -770,9 +770,34 @@ module.exports = {
 ```
 * 3.1 :这里面有自己添加了devServer.表示本地服务器，里面有个before方法，参数是app，可以在这里面定义接口(在开发模式下，DevServer 提供虚拟服务器，让我们进行开发和调试。而且提供实时重新加载。简直美滋滋。大大减少开发时间。例如里面定义的app.get('/api/seller',。启动服务后，在url输入http://localhost:8080/api/seller，可以看到对应地址的后台数据.)
 * 3.2 :chainWebpack(config):简化代码，避免调用src下的components,common,api时还要输入"src"
-## components组件目录
+# components组件目录
 * ![](source/components目录.png)
-### v-header: 主页面头部（商家门面）
+## v-header: 主页面头部（商家门面）
 1. 分了三个部分：上方、下面的公告部分、背景部分
 2. 接收了app.vue组件传来的后台的seller信息
-3. 引入了support-ico组件，用于设置图片类型
+3. 引入了support-ico组件，用于设置图片类型。并为support-ico组件传出了所需图片的尺寸、类型信息
+## header-detail: 主页面头部弹出活动详情框
+1. headerDetail组件是fixed，如果放在其他组件内部（有类似transition的样式），会对样式造成影响，所以我们可以直接把这种类型的组件放在body下。这里可以借助cube-ui的create-api 模块(https://didi.github.io/cube-ui/#/zh-CN/docs/create-api)。该模块默认暴露出一个 createAPI 函数，可以实现以 API 的形式调用自定义组件
+```
+register.js里面：
+import { createAPI } from 'cube-ui'
+import Vue from 'vue'
+import HeaderDetail from 'components/header-detail/header-detail'
+createAPI(Vue, HeaderDetail)
+
+main.js里面：
+// 引入register.js
+import './register'
+
+v-header里面调用该组件，注意不用导入url,因为在main.js中导入了。：
+methods: {
+  showDetail() { // 点击 主页面头部（商家门面）时
+    this.headerDetailComp = this.headerDetailComp || this.$createHeaderDetail({
+      $props: { // 接收v-header组件的seller信息
+        seller: 'seller'
+      }
+    })
+    this.headerDetailComp.show()
+  }
+}
+```

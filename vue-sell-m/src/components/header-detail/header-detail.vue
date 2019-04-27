@@ -89,7 +89,7 @@ export default {
     left: 0
     width: 100%
     height: 100%
-    overflow: auto// kankankankankankan
+    overflow: auto
     backdrop-filter: blur(13px)// css3新特性，可以不使其子元素也继承模糊属性
     opacity: 1
     color: $color-white
