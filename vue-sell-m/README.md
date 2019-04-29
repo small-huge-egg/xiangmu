@@ -11,7 +11,7 @@
 # 整改vue.config,js,把路径整改
 # get新技能
 1. axios执行get请求，三种方式，这里用的是通过params对象传递参数，并做了封装。
-```
+```javaScript
 api/helpers:
 export function get(url) {//定义get方法
   return function (params) {
@@ -56,7 +56,7 @@ let hasDecimal=score%1 !== 0;//说明有小数，有半星
 ### 关于cube-api的createAPI介绍：
 #### 该模块默认暴露出一个 createAPI 函数，可以实现以 API 的形式调用自定义组件。并且既可以在 Vue 实例上下文中调用，也可以在普通 js 文件中调用。
 > 运用： 在需要运用全屏框的 组件上 添加点击事件，点击事件中运用createAPI:
-```
+```javaScript
 const instance = this.$createAaBb(config, renderFn, single)。
 代码：
 showDetail() {
@@ -73,7 +73,7 @@ showDetail() {
 #### tab区域以及完成点击tab引起slide改变
 > 思想： 单纯的tabbar只用把文档代码粘出来。但是我想在点击某一项tabbar时下面的slide随之改变。 于是看文档得知绑定一个 v-model，并且值必须是对应的label就可以完成切换。那么问题来了，怎样让tabbar改变时label也变呢？这时想到计算属性。
   * 把v-model的值绑定计算属性，其中get这个钩子函数用来读取当前label的值，计算并返回新的值。那么如何知道当前的label值呢，思路：由index得知label。由此用set这个钩子函数来监视index的变化，变化了咱们就执行get。那么set怎样改变index的值呢？官方文档有个value，value是cubeTab的参数之一，用来判断哪个tab的值作为选中值。默认值：label值。因此通过遍历tabs中value.label在数组中的位置来改变index
-```
+```javaScript
 <cube-tab-bar
               v-model="selectedLabel" //必须项，该指令表示选中的是哪个tab,参数值必须与某一项tab的label属性对应。意思是值必须是对应的label值
               class="border-bottom-1px"
@@ -115,7 +115,7 @@ computed: {
 1. slide区域以及完成点击slide引起tab改变
 > 思想：文档给出change事件，在slide页面切换时触发，参数：当前页面的索引值
   * 既然有change事件又有当前页面索引值作为参数，那么点击slide引起tab改变只用改变data中的index值就好了。因为index一旦改变，就会触发tabbar的model事件的计算属性，一旦触发计算属性，tabbar就会发生改变
-```
+```javaScript
 onChange (current) {
   this.index = current // 更改当前索引值
   console.log(this.index)
@@ -124,7 +124,7 @@ onChange (current) {
 2. 当slide滑动时让tabbar的底部横条也对应滚动一定距离
 > 思想：文档 slide 给出*scroll事件*，在滚动中实时触发，参数：Object {x, y} -滚动位置的坐标值。那么可以设置滚动时改变横条的位置
   * 利用实时触发滚动的这个事件，设置底部横条位置。看文档得知tabbar有一个实例方法：*setSliderTransform*,改变 cube-tab-bar 组件的下划线的 transformX
-```
+```javaScript
 onScroll (pos) {
   const tabBarWidth = this.$refs.tabBar.$el.clientWidth
   const slideWidth = this.$refs.slide.slide.scrollerWidth
@@ -191,7 +191,7 @@ fetch () {
 //什么时候调用呢？我们一般是在组件的mounted里面调用，但是在这个项目中，如果我们在评论或者商家页面，商品页面有可能是在mounted，这时就会进行数据加载，这样的话，会影响当前页面的显示，所以，我们应该在切换组件的时候调用这个方法
 ```
 * 可以在Tab组件的onChange方法里调用：
-```
+```javaScript
 // 切换的时候，调用对应组件里面的fetch
 onChange (current) {
   this.index = current // 更改当前索引值
@@ -206,7 +206,7 @@ onChange (current) {
 ### 当从父组件中传来的food.count不存在时，点击"➕"按钮，使count+1
 * 值得注意的是food在父组件的data中并没有count这个属性，对于响应系统，vue不会遍历count这个属性
 > 解决方法： 通过Vue.$set方法设置data属性：
-```
+```javaScript
   add() {
     if (!this.food.count) {
       Vue.set(this.food, 'count', 1)
@@ -217,7 +217,7 @@ onChange (current) {
 > 效果：页面可以有多个小球飞入底部购物车。
 #### 具体实现：
 ##### 1.首先在底部购物车组件通过*循环创建10个隐藏的小球*，目的是可以有多个小球在页面上运动。(通过js命名一个函数，函数返回存放小球的数组，然后在data中保存这个函数，并赋值给balls)
-```
+```javaScript
 具体做法代码：
 <!-- shop-cart.vue -->
 const BALL_LEN = 10 // 小球个数
@@ -252,7 +252,7 @@ data () {
 ```
 ##### 2.点击goods组件上的加号，让小球显示出来并实现动画。
 * 因为要知道小球运动前后落脚点，所以需要操作dom得知是哪个加号。于是cart-control向父组件goods传点击的dom
-```
+```javaScript
 <!-- cart-control.vue -->
 // 定义加入购物车
 add(event) {
@@ -272,7 +272,7 @@ onAdd (el) { // 点击加号，执行购物车子组件的drop事件，同时将
 }
 ```
 ##### 3.定义drop方法（在点击加号的时候把小球显示出来，并且把小球的el=传进来的加号的dom（我也不知道怎么可以这样神奇，可能我想错了吧），然后把显示的小球扔进dropBalls数组中，注意这个数组实在create生命周期定义，因为这是个临时数组，不用响应式）
-```
+```javaScript
 drop(el) { // 接收从父组件goods传来的小球初始化位置的参数
   for (let i = 0; i < this.balls.length; i++) {
       const ball = this.balls[i]
@@ -289,7 +289,7 @@ drop(el) { // 接收从父组件goods传来的小球初始化位置的参数
 * 在beforeDrop中：把最后一个被点击的小球显示出来，并且把它挪到被点的加号dom位置处（注意这里用ball.el获取dom）
 * 在droping 中，把小球挪到购物车位置，即原位置，注意这里的done结束动画
 * 在afterDrop中，获取droopBalls中的第一个小球，如果该小球还在显示，那么隐藏它，注意还要使ball.show=false
-```
+```javaScript
 beforeDrop(el) {
   const ball = this.dropBalls[this.dropBalls.length - 1] // 最后一个被点的小球
   const rect = ball.el.getBoundingClientRect() // 获取最后一个被点加号相对于屏幕的位置
@@ -390,7 +390,7 @@ export default {
 </template>
 ```
 10. 购物车总列表（cube-ui->popup）
-```
+```html
 <!-- shop-cart-list -->
 <cube-popup
   v-show="visible"
@@ -400,6 +400,8 @@ export default {
   type="shop-cart-list" // popup配置 设置弹层类型，相当于加了一个cube-shop-cart-list的class,这里用于改变弹层位置
   @mask-click="maskClick" // popup事件 背景层点击，参数：点击事件对象
 >
+```
+```html
 <!-- shop-cart -->
 <div class="content" @click="toggleList">
  created() {
@@ -498,7 +500,7 @@ props: {
 ```
 ### 11.2 goods组件点击对应菜品弹出food详情页
 * 点击某项菜品，弹出food组件，传递selectedFood
-```
+```javaScript
 代码：goods.vue
 <li
   @click="selectFood(food)" // 新添加：------注册点击事件
@@ -530,7 +532,7 @@ _showFood() { // 通过create-api将food组件挂载到goods.vue
 }
 ```
 ### 11.3 发现详情页不能滚动，so refresh一下
-```
+```javaScript
 代码：food.vue
 const EVENT_SHOW = 'show'
 created() { // 因为页面不能滚动，so refresh一下
@@ -542,7 +544,7 @@ created() { // 因为页面不能滚动，so refresh一下
 },
 ```
 ### 11.4 发现底部购物车被掩盖，调用sticky组件
-```
+```javaScript
 代码：goods.vue
 _shopCartSticky() { // 将底部购物车挂载到body上
   this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
@@ -557,7 +559,7 @@ _shopCartSticky() { // 将底部购物车挂载到body上
 }
 ```
 ### 11.5 返回到goods页面，控制sticky组件消失
-```
+```javaScript
 代码：food.vue
 <transition
   name="move"
@@ -588,13 +590,15 @@ _hideShopCartList() {
 }
 ```
 ### 11.6 food页面的加入购物车按钮——安排
-```
+```html
 代码： food.vue
 <transition name="fade">
   <div @click="addFirst" class="buy" v-show="!food.count">
     加入购物车
   </div>
 </transition>
+```
+```javaScript
 const EVENT_ADD = 'add'
 addFirst(event) {
   this.$set(this.food, 'count', 1) // 注意这的$set，因为data中的数据不能在更新后自动更新到视图
@@ -620,7 +624,7 @@ addFirst(event) {
 ```
 ### 11.7 food页面的加入商品评论
 * 评论写在computed里面，为了引入方便，直接ratings解决。且用v-show接收，用来判断是否存在评论
-```
+```javaScript
 代码：food.vue
 <ul v-show="ratings && ratings.length">
 computed: {
@@ -678,7 +682,7 @@ format(time) {
 3. App.vue: 总的vue文件
 4. cube-ui.js: 管理cube-ui模块的引入
 5. main.js: 主js文件
-```
+```javaScript
 import Vue from 'vue'
 import './cube-ui'
 import App from './App.vue'
@@ -706,7 +710,7 @@ new Vue({
 2. theme.styl 管理cube-ui的颜色（修改颜色可以在这里面进行修改）
 3. vue.config.js  类似以前的webpack.js文件，进行一些配置。
 * vue.config.js代码：
-```
+```javaScript
 // 引入data.json文件，获取对应的数据
 const Path = require('path')
 const appData = require('./data.json')
@@ -778,7 +782,7 @@ module.exports = {
 3. 引入了support-ico组件，用于设置图片类型。并为support-ico组件传出了所需图片的尺寸、类型信息
 ## header-detail: 主页面头部弹出活动详情框
 1. headerDetail组件是fixed，如果放在其他组件内部（有类似transition的样式），会对样式造成影响，所以我们可以直接把这种类型的组件放在body下。这里可以借助cube-ui的create-api 模块(https://didi.github.io/cube-ui/#/zh-CN/docs/create-api)。该模块默认暴露出一个 createAPI 函数，可以实现以 API 的形式调用自定义组件
-```
+```javaScript
 register.js里面：
 import { createAPI } from 'cube-ui'
 import Vue from 'vue'
