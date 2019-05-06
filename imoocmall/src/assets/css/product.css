@@ -436,6 +436,15 @@
   font-size: 12px;
 }
 
+.load-more{
+  height: 100px;
+  line-height: 100px;
+  text-align: center
+}
+
+.load-more-hide {
+  height: 0;
+}
 @media only screen and (max-width: 767px) {
   .search-result-wrap {
     background: none;

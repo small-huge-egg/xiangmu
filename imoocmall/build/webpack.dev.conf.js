@@ -13,7 +13,7 @@ const portfinder = require('portfinder')
 // 模拟mork数据
 const express = require('express')
 const app = express()
-var goodsData = require('./../mock/goods.json')
+// var goodsData = require('./../mock/goods.json')-----
 // var result = goodsData.result ++++++++++++++++++
 const router = express.Router()
 app.use(router)//----------
@@ -58,13 +58,13 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 // router.get("/goods", function (req, res, next) {
 //   res.json(goodsData)
 // })
-      app.get('/goods',(req, res) => {//-/
-        res.json({
-          errno:0,
-          // data:result++++++++++++++
-          data:goodsData
-        })
-      })
+      // app.get('/goods',(req, res) => {//-/-------
+      //   res.json({
+      //     errno:0,
+      //     // data:result++++++++++++++
+      //     data:goodsData
+      //   })
+      // })
     }
   },
   plugins: [
