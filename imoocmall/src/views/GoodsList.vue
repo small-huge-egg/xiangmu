@@ -46,6 +46,7 @@
               <!-- 使用鼠标滚动插件 -->
               <div class="load-more" :class="{'load-more-hide':loadHide}" v-infinite-scroll="loadMore" infinite-scroll-disabled="busy" infinite-scroll-distance="20">
                 加载中...
+                <img src="./../assets/loading-spinning-bubbles.svg" alt="">
               </div>
             </div>
           </div>
@@ -73,6 +74,10 @@
         priceFilter:[ 
           {
             startPrice: '0.00',
+            endPrice: '100.00'
+          },
+          {
+            startPrice: '100.00',
             endPrice: '500.00'
           },
           {
@@ -81,7 +86,7 @@
           },
           {
             startPrice: '1000.00',
-            endPrice: '2000.00'
+            endPrice: '5000.00'
           }
         ],
         // 设置价格区间选中
@@ -110,7 +115,8 @@
         let param = {
           page: this.page,
           pageSize: this.pageSize,
-          sort: this.sortFlag?1:-1
+          sort: this.sortFlag?1:-1,
+          priceLevel: this.priceChecked
         }
         axios.get("/goods",{
           params: param
@@ -152,10 +158,12 @@
         this.filterBy = false
         this.overLayFlag = false
       },
-
+      // 点击一个价格区间后关闭弹窗并将点的哪个传给priceChecked，最后重新渲染页面
       setPriceFilter(index) {
+        this.page = 1
         this.priceChecked = index
         this.closePop()
+        this.getGoodsList()
       },
 
       // 鼠标滚动时

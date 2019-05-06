@@ -20,6 +20,7 @@ mongoose.connection.on("disconnected", function () {
   console.log("mongooDB connected disconnected")
 })
 
+// 查询商品列表数据
 router.get("/", function (req,res,next) {
   // 排序价格并设置分页
   // 接收前端请求的page,pageSize,sort
@@ -27,7 +28,23 @@ router.get("/", function (req,res,next) {
   let pageSize = parseInt(req.query.pageSize);
   let sort = parseInt(req.query.sort);
   let skip = (page-1)*pageSize;
+  var priceLevel = req.query.priceLevel;
+  let priceGt = '',priceLte='';
   let params = {};
+  if(priceLevel!='all'){ // 如果设置了价格区间
+    switch (priceLevel) {
+      case '0':priceGt = 0;priceLte = 100;break;
+      case '1':priceGt = 100;priceLte = 500;break;
+      case '2':priceGt = 500;priceLte = 1000;break;
+      case '3':priceGt = 1000;priceLte = 5000;break;
+    }
+    params = {
+      salePrice:{
+        $gt:priceGt,
+        $lte:priceLte
+      }
+    }
+  }
   let goodsModel = Goods.find(params).skip(skip).limit(pageSize);
   goodsModel.sort({'salePrice':sort});
   goodsModel.exec(function (err,doc) { // 立即执行查询
@@ -47,6 +64,12 @@ router.get("/", function (req,res,next) {
       })
     }
   })
+})
+
+
+// 加入到购物车
+router.post("/goods/addCart", (req,res,next) =>{
+  
 })
 
 module.exports = router;

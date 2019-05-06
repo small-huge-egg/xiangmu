@@ -366,9 +366,31 @@ if (this.pageNo >= totalPage) {
   this.loadMoreHide = false
 }
 ```
-
-
-
+## 关于点击价格区间对应切换
+> 发送给后端用户点击的index值，后台获取并设置对应的价格区间，最后find方法添加价格区间参数过滤掉不需要的内容
+* 知识点：
+  * $gt：大于
+  * $lte: 小于
+```javaScript
+// goods.js
+et priceGt = '',priceLte='';
+  let params = {};
+  if(priceLevel!='all'){ // 如果设置了价格区间
+    switch (priceLevel) {
+      case '0':priceGt = 0;priceLte = 100;break;
+      case '1':priceGt = 100;priceLte = 500;break;
+      case '2':priceGt = 500;priceLte = 1000;break;
+      case '3':priceGt = 1000;priceLte = 5000;break;
+    }
+    params = {
+      salePrice:{
+        $gt:priceGt, // 大于
+        $lte:priceLte // 小于
+      }
+    }
+  }
+  let goodsModel = Goods.find(params).skip(skip).limit(pageSize);
+```
 
 
 
