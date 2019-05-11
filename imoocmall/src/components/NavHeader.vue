@@ -171,9 +171,9 @@ export default {
     align-items: center;
     margin-left: -20px;
   }
-  .navbar-brand-logo {
-    /*width: 120px;*/
-  }
+  /* .navbar-brand-logo {
+    width: 120px;
+  } */
   .header a, .footer a {
     color: #666;
     text-decoration: none;
