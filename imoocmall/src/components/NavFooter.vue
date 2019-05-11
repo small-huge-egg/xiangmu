@@ -13,15 +13,15 @@
               </select>
             </div>
             <div class="footer__secondary__nav">
-              <span>Copyright © 2017 IMooc All Rights Reserved.</span>
-              <a href="http://us.lemall.com/us/aboutUs.html">
-                About Us
+              <span>there is ending @2019.</span>
+              <a href="https://github.com/small-huge-egg?tab=overview&from=2017-11-01&to=2017-11-27">
+                About Me
               </a>
-              <a href="http://us.lemall.com/us/termsofUse.html">
-                Terms &amp; Conditions
+              <a href="https://github.com/small-huge-egg?tab=overview&from=2017-11-01&to=2017-11-27">
+                About Me
               </a>
-              <a href="http://us.lemall.com/us/privacyPolicy.html">
-                Privacy Policy
+              <a href="https://github.com/small-huge-egg?tab=overview&from=2017-11-01&to=2017-11-27">
+                About Me
               </a>
             </div>
           </div>

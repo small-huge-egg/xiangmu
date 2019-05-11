@@ -19,14 +19,26 @@ npm run build --report
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
->时间：2019.05.04 17：00--2019.05.04 22：00      5
->时间：2019.05.05 18：30--2019.05.06 00：30      6
->时间：2019.05.06 13：20--2019.05.06 
+>时间：2019.05.04 17：00--2019.05.04 22：00                                           5
+>时间：2019.05.05 18：30--2019.05.06 00：30                                           6
+>时间：2019.05.06 13：20--2019.05.07 00：30                                           11.10
+>时间：2019.05.08 13：45--2019.05.09 01: 00                                           11.15
+>时间：2019.05.09 16: 35--2019.05.10 01: 00                                           8.25
+>时间：2019.05.10 13：30--2019.05.10 18：45+2019.05.10 20：30--2019.05.11 00：50      9.35
+>时间：2019.05.11 08：00--
+# 引用：
+* vue的懒加载插件:npm官网搜vue-lazyload
+* 无限滚动实现加载更多插件vue-infinite-scroll：npm官网搜vue-infinite-scroll
+* 时间生成器：server->util->util.js
+* 金额过滤器：src->util->currency.js
+
+
 # 目录：
 * static: 静态资源，这里存放了项目所需的图片 
 * src->assets：静态资源，更偏重于组件的资源。这里存放了css文件
 * src->components: vue文件，一般为页面中一小块一小块的
 * src->views: vue文件，一般为单页面
+* src->util: 这里存放了github中的金额过滤器
 # src->views->GoodsList.vue
 > 商品列表页面，导入了src->assets的css文件,导入了components->NavHeader.vue和NavFooter.vue
 > 将GoodsList路由组件添加到route->index.js中
@@ -74,7 +86,7 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
   <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-cart"></use>
 </svg>
 ```
->关于响应式布局
+>关于媒体查询
 * 这里有个元素在屏幕大于767时隐藏,小于767px时显示
 ```css
 /* 大于767时隐藏 */
@@ -184,7 +196,7 @@ node server/bin/www
     * 注意这里在app.js新建一个goods路由，才能通过3000/goods获取到数据
 * 通过跨域使前端通过8080端口获取goods内容
 # mongodb导入数据
-* 命令行：` mongoimport -d db_demo -c users --file 文件拖进去`
+* 命令行：` mongoimport -d mocall -c users --file 文件拖进去`
 # 基于Express开发商品列表查询接口(后端实现)
 ## 安装mongoose
 > Mongoose是在node.js异步环境下对mongodb进行便捷操作的对象模型工具,同时它也是针对mongoDB操作的一个对象模型库，封装了mongoDB对文档的一些增删改查等常用方法，让nodejs操作mongoDB数据库变得更加容易。
@@ -373,7 +385,7 @@ if (this.pageNo >= totalPage) {
   * $lte: 小于
 ```javaScript
 // goods.js
-et priceGt = '',priceLte='';
+let priceGt = '',priceLte='';
   let params = {};
   if(priceLevel!='all'){ // 如果设置了价格区间
     switch (priceLevel) {
@@ -391,7 +403,165 @@ et priceGt = '',priceLte='';
   }
   let goodsModel = Goods.find(params).skip(skip).limit(pageSize);
 ```
-
+## 关于cookie
+* cookie是前端保存的，后端设置的
+* 因为是给前端的，所以res.cookie
+```javaScript
+// 登录接口
+router.post('/login', (req, res, next) => { 
+  //接收客户端传来的密码，账号
+  let param = {
+    userName: req.body.userName,
+    userPwd: req.body.userPwd
+  }
+  User.findOne(param, (err,doc) => {
+    if(err) { // 如果出错
+      res.json({
+        status: "1",
+        msg: err.message
+      })
+    } else { // 已经没错
+      if(doc){ // 拿到用户数据
+        // 将用户id保存在cookie中
+        res.cookie("userId",doc.userId,{
+          path:'/',
+          maxAge:1000*60*60 // 保存时间
+        })
+        // 将用户名保存在cookie中
+        res.cookie("userName",doc.userName,{
+          path:'/',
+          maxAge:1000*60*60 // 保存时间
+        })
+        res.json({
+          status: "0",
+          msg: '',
+          result:{ //把用户名返回给客户端
+            userName: doc.userName 
+          }
+        })
+      }
+    }
+  })
+})
+```
+* cookie再刷新页面之后就没了，所以手动保存cookie
+> 思想：在生命周期为mounted时，（渲染头部页面时），检测登陆信息，根据后台返回的信息决定是否有usernName
+```javaScript
+// 后台user.js
+// 使cookie数据在刷新之后仍然存在
+router.get('/checkLogin', (req, res, next) => {
+  if(req.cookies.userId){ // 如果有cookie记录
+    res.json({
+      status:'0',
+      msg:'',
+      result: req.cookies.userName || '' // 把用户名传给'/'页面
+    })
+  } else { // 如果没有cookie记录
+    res.json({ 
+      status:'1',
+      msg:'未登录',
+      result: ''
+    })
+  }
+})
+// NavHeader.vue
+mounted() {
+    this.checkLogin() //检查刷新页面之前有没有登陆
+  },
+  methods: {
+    checkLogin(){ //检查刷新页面之前有没有登陆
+      axios.get('users/checkLogin').then((response) => {
+        console.log(response.data)
+        if(response.data.status==0){ // 如果登陆了
+        console.log(response.data.result)
+          this.nickName = response.data.result // 接收后台传来的userName数据
+        }
+      })
+    },
+  }
+```
+## 关于更改一个对象数组里每一项的某个项的值
+```javaScript
+// users.js
+// 商品选中
+router.post("/editCheckAll",(req, res, next) => {
+  let userId = req.cookies.userId;
+  let checkAll = req.body.checkAll?'1':'0'
+  User.findOne({userId:userId}, (err,doc) => { // 不用update因为这里要遍历更改所有商品
+    if(err){
+      res.json({ 
+        status: '1',
+        msg: err.message,
+        result: ''
+      })
+    }else{
+      if(doc) {
+        doc.cartList.forEach(item => { // 更改购物车所有商品选中状态
+          item.checked = checkAll
+        });
+        // 保存更改
+        doc.save((err1,doc1) => {
+          if(err1){
+            res.json({ 
+              status: '1',
+              msg: err.message,
+              result: ''
+            })
+          } else{
+            res.json({ 
+              status: '0',
+              msg: '',
+              result: 'suc'
+            })}})}}})})
+```
+## 关于全选按钮与每一个按钮的联动
+>小按钮动，大按钮改变
+* 每次点击按钮都给按钮一个绑定事件，定义flag,通过flag改变大按钮
+* 设置计算属性checkAllFlag，如果每个按钮都被选中的值等于购物车列表的值，使全选按钮被选中，否则为false,class就不显示
+```javaScript
+// cart.vue
+// 全选按钮
+toggleCheckAll(){
+  let flag = !this.checkAllFlag
+  this.cartList.forEach((item) => { // 遍历购物车列表，更改checked
+    item.checked = flag?'1':'0'
+  })
+  // 将全选信息传递给后端
+  axios.post('/users/editCheckAll',{
+    // 提交给服务端全选信息
+    checkAll: flag
+  }).then((response)=>{
+    if(response.data.status==0){
+      console.log("update suc");
+    }
+  })
+}
+```
+## 关于点击more展开更多地址
+>思想：利用计算属性截取地址数组，让页面渲染计算属性得到的数组，点击更多的时候判断数组的值是不是data中定义的限制值，是的话就把数组给弄成最大即原本数组的length=limit，不是的化就还原为limit原本的值
+```javaScript
+// address.vue
+data(){
+  return{
+    addressList:[],
+    limit: 3 // 默认显示地址条数
+  }
+},
+// 展开地址栏
+expand(){
+  if(this.limit==3){
+    this.limit = this.addressList.length
+  }else{
+    this.limit = 3
+  }
+}
+```
+# 关于通过循环列表渲染出来的每一项点击时样式改变
+>思想：利用index和自己建立的checkIndex赋值相等来实现改变
+```
+<li v-for="(item,index) in addressListFilter" :class="{'check':checkIndex==index}" @click="checkIndex=index" :key="index" >
+data中定义：checkIndex:0 // 被选择的地址栏的index
+```
 
 
 
@@ -461,6 +631,23 @@ before(app) {
 // <!-- console.log(result.data): -->
 {errno: 0, data:{...}} // 这里的data包含了mork的全部数据,so result.data.data.result
 ```
+
+> 踩坑之客户端axios请求添加购物车一直显示添加失败
+* 开始显示服务器500，检查后发现忘了接收客户端传来的数据。但是依旧添加失败
+* 最后想着是不是没安装post请求，安装后依然失败
+* 又因为3000/goods/addCart一直显示404,我就以为是地址写错，一直没找着
+* 最后在GoodsList.vue axios中输出了判断条件：res,发现res.status=200而不是我写的0,而res.data.status==0
+* 总结：尽量输出控制台看一下参数
+
+
+
+
+
+
+
+
+
+
 # 命令行报错总结
 * 未联网下安装插件，如执行cnpm i ...报错
 ```

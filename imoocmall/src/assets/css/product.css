@@ -444,6 +444,7 @@
 
 .load-more-hide {
   height: 0;
+  overflow: hidden;
 }
 @media only screen and (max-width: 767px) {
   .search-result-wrap {

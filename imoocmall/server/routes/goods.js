@@ -21,7 +21,7 @@ mongoose.connection.on("disconnected", function () {
 })
 
 // 查询商品列表数据
-router.get("/", function (req,res,next) {
+router.get("/list", function (req,res,next) {
   // 排序价格并设置分页
   // 接收前端请求的page,pageSize,sort
   let page = parseInt(req.query.page);
@@ -68,8 +68,85 @@ router.get("/", function (req,res,next) {
 
 
 // 加入到购物车
-router.post("/goods/addCart", (req,res,next) =>{
-  
+router.post("/addCart", (req,res,next) =>{ // 向服务器提交数据
+  // 假设已经登陆,登录用户的id如下
+  let userId = req.cookies.userId;
+  // 获取user模型
+  // 获取客户端传来的productId
+  let productId = req.body.productId;
+  console.log("45465"+userId)
+  let User = require('../models/user');
+  // 获取用户信息并且给该用户插数据
+  User.findOne({
+    userId: userId
+  },(err,userdoc) => {
+    if(err) { // 如果出错
+      res.json({
+        status: "1",
+        msg: err.message
+      })
+    } else { // 已经没错
+      if(userdoc){ // 拿到用户数据
+        // 判断用户购物车是否已经有该商品
+        let goodsItem = '';
+        userdoc.cartList.forEach((item) => {
+          if(item.productId == productId){
+            goodsItem = item;
+            item.productNum++
+          }
+        })
+        if(goodsItem){  // 如果有该商品了，直接保存
+          userdoc.save((err2,doc2) => {
+            if(err2) { // 如果保存失败
+              res.json({
+                status: "1",
+                msg:err2.message
+              })
+            } else { // 保存成功
+              res.json({
+                status: "0",
+                msg:'',
+                result: 'suc'
+              })
+            }
+          })
+        }else{ // 没有该商品，插入goods数据
+          Goods.findOne({productId:productId},(err1,doc) => { // 展示商品数据
+          if(err1) { // 如果出错
+            res.json({
+              status: "1",
+              msg:err1.message
+            })
+          } else { // 如果没错
+            if(doc) { // 如果成功找到数据
+              doc.productNum = 1;
+              doc.checked = 1;
+
+              userdoc.cartList.push(doc) // 加入购物车，将新数据添加到用户名下
+              // console.log("4546ddssffdfaddffff5"+userId)
+              userdoc.save((err2,doc2) => {
+                if(err2) { // 如果保存失败
+                  res.json({
+                    status: "1",
+                    msg:err2.message
+                  })
+                } else { // 保存成功
+                  res.json({
+                    status: "0",
+                    msg:'',
+                    result: 'suc'
+                  })
+                }
+              })
+            }
+          }
+        })
+        }
+      } 
+    }
+  })
 })
+
+
 
 module.exports = router;
