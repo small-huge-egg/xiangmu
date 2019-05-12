@@ -44,6 +44,8 @@ router.get("/list", function (req,res,next) {
         $lte:priceLte
       }
     }
+  }else{ // 如果没有设置价格区间
+    params={}
   }
   let goodsModel = Goods.find(params).skip(skip).limit(pageSize);
   goodsModel.sort({'salePrice':sort});

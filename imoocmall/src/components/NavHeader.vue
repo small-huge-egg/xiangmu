@@ -39,7 +39,7 @@
           <div class="md-content" @keyup.enter="login">
             <div class="confirm-tips">
               <div class="error-wrap">
-                <span class="error error-show" v-show="errorTip">用户名或者密码错误</span>
+                <span class="error error-show" v-show="errorTip">用户名或密码错误</span>
               </div>
               <ul>
                 <li class="regi_form_input">
@@ -80,15 +80,15 @@ export default {
     this.checkLogin() //检查刷新页面之前有没有登陆
   },
   computed:{
-    ...mapState(['nickName','cartCount']) // mapState是vuex封装的this.$store.state对象，加...解构
-    /*
+    // ...mapState(['nickName','cartCount']) // mapState是vuex封装的this.$store.state对象，加...解构
+    
     nickName() { // 通过vuex实时获取用户名
       return this.$store.state.nickName
     },
     cartCount() {
       return this.$store.state.cartCount
     }
-    */
+  
   },
   methods: {
     checkLogin(){ //检查刷新页面之前有没有登陆
@@ -115,15 +115,15 @@ export default {
         userPwd:this.userPwd
       }).then((response)=>{
         let res = response.data;
-        if(res.status=="0"){
+        if(res.status=="0"){ // 登陆成功
           this.errorTip = false
           this.loginModalFlag = false
           this.$store.commit("updateUserInfo",res.result.userName)
           // this.nickName = res.result.userName
           this.getCartCount()
-        }else{
+        }else{ // 登录失败
           this.errorTip = true
-          this.loginModalFlag = false
+          this.loginModalFlag = true
         }
       })
     },
@@ -132,7 +132,8 @@ export default {
     logout(){
       axios.post('/users/logout').then((res) => {
         if(res.data.status=="0"){
-          this.$store.nickName = ''
+          this.$store.state.nickName = '' // 名字置为空
+          this.$store.state.cartCount = '' // 购物车数量置为空
         }
       })
       this.$store.commit("updateCartCount",'')

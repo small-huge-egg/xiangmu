@@ -124,12 +124,19 @@
           </div>
         </div>
       </div>
-      <!-- 弹出层模态框 -->
+      <!-- 删除地址 弹出层模态框 -->
       <modal :mdShow="isMdShow" @close="closeModal">
-        <p slot="message">您是否确定要删除此地址？</p>
+        <p slot="message">能不删除我吗？可怜巴巴..</p>
         <div slot="btnGroup">
-          <a href="javascript:;" class="btn btn--m" @click="delAddressConfirm">确认</a>
-          <a href="javascript:;" class="btn btn--m" @click="isMdShow=false">取消</a>
+          <a href="javascript:;" class="btn btn--m" @click="delAddressConfirm">无情拒绝你</a>
+          <a href="javascript:;" class="btn btn--m" @click="isMdShow=false">那就放过你了</a>
+        </div>
+      </modal>
+      <!-- 删除最后一个地址 弹出不允许删的模态框 -->
+      <modal :mdShow="isMdShowLast" @close="closeModal">
+        <p slot="message">就剩一条数据了，您删了还买个卵子</p>
+        <div slot="btnGroup">
+          <a href="javascript:;" class="btn btn--m" @click="isMdShow=false">那我不删了</a>
         </div>
       </modal>
       <nav-footer></nav-footer>
@@ -150,6 +157,7 @@ export default{
       limit: 3, // 默认显示地址条数
       checkIndex:null, // 被选择的地址栏的index
       isMdShow: false,
+      isMdShowLast: false, //最后一条地址数据
       addressId:'',
       selectedAddrId:'' // 被选中的地址id
     }
@@ -194,8 +202,13 @@ export default{
 
     // 点击删除地址
     delAddress(addressId){ 
-      this.isMdShow = true
-      this.addressId = addressId
+      if(this.addressList.length<=1){ // 如果是最后一条数据
+        this.isMdShowLast = true
+      }else{
+        this.isMdShow = true
+        this.addressId = addressId
+      }
+      
     },
 
     // 点击确认删除地址

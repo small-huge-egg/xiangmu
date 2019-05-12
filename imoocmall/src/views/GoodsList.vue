@@ -23,7 +23,7 @@
           <div class="filter stopPop" id="filter" :class="{'filterby-show':filterBy}">
             <dl class="filter-price">
               <dt>Price:</dt>
-              <dd><a href="javascript:void(0)" :class="{'cur':priceChecked=='all'}" @click="priceChecked='all'">All</a></dd>
+              <dd><a href="javascript:void(0)" :class="{'cur':priceChecked=='all'}" @click="setAll">All</a></dd>
               <dd v-for="(item,index) in priceFilter" :key="index">
                 <a href="javascript:void(0)" :class="{'cur':priceChecked==index}" @click="setPriceFilter(index)">{{item.startPrice}} - {{item.endPrice}}</a>
               </dd>
@@ -59,7 +59,7 @@
     </div>
     <modal :mdShow="mdShow" @close="closeModal">
       <p slot="message">
-          请先登录,否则无法加入到购物车中!
+          您还没有登录，这边无法给您加入购物车呢宝贝
       </p>
       <div slot="btnGroup">
           <a class="btn btn--m" href="javascript:;" @click="mdShow = false">关闭</a>
@@ -70,11 +70,11 @@
         <svg class="icon-status-ok">
           <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-status-ok"></use>
         </svg>
-        <span>加入购物车成功!</span>
+        <span>加入购物车成功!要来购物车看看我吗？</span>
       </p>
       <div slot="btnGroup">
-        <a class="btn btn--m" href="javascript:;" @click="mdShowCart = false">继续购物</a>
-        <router-link class="btn btn--m btn--red" href="javascript:;" to="/cart">查看购物车</router-link>
+        <a class="btn btn--m" href="javascript:;" @click="mdShowCart = false">我还要再逛逛</a>
+        <router-link class="btn btn--m btn--red" href="javascript:;" to="/cart">这就来看看你</router-link>
       </div>
     </modal>
     <div class="md-overlay" v-show="overLayFlag" @click="closePop"></div>
@@ -175,7 +175,7 @@
       sortGoods() {
         this.sortFlag = !this.sortFlag
         this.page = 1 // 点完置1
-        this.getGoodsList() // 重新渲染页面
+        this.getGoodsList() // 重新渲染页面        
       },
 
 
@@ -193,6 +193,14 @@
       setPriceFilter(index) {
         this.page = 1
         this.priceChecked = index
+        this.closePop()
+        this.getGoodsList()
+      },
+
+      // 点击all后关闭弹窗并将点的那个传给priceChecked，最后重新渲染页面
+      setAll(){
+        this.page = 1
+        this.priceChecked = 'all'
         this.closePop()
         this.getGoodsList()
       },

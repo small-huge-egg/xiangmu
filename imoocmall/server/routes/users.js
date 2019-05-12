@@ -45,6 +45,12 @@ router.post('/login', (req, res, next) => {
             userName: doc.userName 
           }
         })
+      }else{ // 没有查到该用户
+        res.json({
+          status: "1",
+          msg: '用户名或密码错误',
+          result:''
+        })
       }
     }
   })

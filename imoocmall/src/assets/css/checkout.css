@@ -1555,7 +1555,7 @@ html {
   .cart {
     padding-bottom: 0;
   }
-
+  .cart-foot-wrap .item-total .total-price
   .page-title-normal {
     border: none;
   }
@@ -1603,17 +1603,16 @@ html {
   }
 
   .cart-foot-wrap {
-    border: none;
-    position: fixed;
+    /* border: none;
     bottom: 0;
     left: 0;
-    width: 100%;
+    width: 100%; */
     z-index: 101;
   }
 
   .cart-foot-wrap .cart-foot-l {
     font-size: 1.4rem;
-    line-height: 48px;
+    line-height: 58px;
   }
 
   .cart-foot-wrap .item-all-check {
@@ -1637,7 +1636,7 @@ html {
   }
 
   .cart-foot-wrap .item-total .total-price {
-    display: block;
+    display: inline-block;
     margin: 0;
     font-size: 1.6rem;
     margin-top: 2px;
@@ -1657,8 +1656,8 @@ html {
 
   .cart-foot-wrap .btn {
     min-width: 116px;
-    height: 50px;
-    line-height: 50px;
+    height: 60px;
+    line-height: 60px;
     font-size: 13px;
   }
 
