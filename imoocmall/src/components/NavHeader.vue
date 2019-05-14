@@ -11,7 +11,8 @@
       <div class="navbar">
         <div class="navbar-left-container">
           <a href="/">
-            <img class="navbar-brand-logo" src="static/logo.png"></a>
+            <img class="navbar-brand-logo" src=""></a>
+            <p class="navbar-brand-logo-title">丸子商城</p>
         </div>
         <div class="navbar-right-container" style="display: flex;">
           <div class="navbar-menu-container">
@@ -162,9 +163,10 @@ export default {
     align-content: center;
     width: 100%;
     height: 70px;
-    max-width: 1280px;
+    max-width: 1980px;
     margin: 0 auto;
     padding: 5px 20px 10px 20px;
+    background: #31bd4acc;
   }
   .navbar-left-container {
     display: flex;
@@ -172,9 +174,27 @@ export default {
     align-items: center;
     margin-left: -20px;
   }
-  /* .navbar-brand-logo {
-    width: 120px;
-  } */
+  .navbar-brand-logo {
+    width: 150px;
+  }
+
+  .navbar-brand-logo-title{
+    margin-left: 10px;
+    background-image: -webkit-linear-gradient(left,#2929d0,#3cdc51 10%,#59dae0 20%,#057b24 30%, #1f1fcc 40%, #00FFFF 50%,#2e2ec5 60%,#61e68a 70%,#26b332 80%,#66FFFF 90%,#3f42af 100%);
+    -webkit-text-fill-color: transparent;/* 将字体设置成透明色 */
+    -webkit-background-clip: text;/* 裁剪背景图，使文字作为裁剪区域向外裁剪 */
+    -webkit-background-size: 200% 100%; 
+    -webkit-animation: masked-animation 4s linear infinite;
+    font-size: 20px;
+  }
+  @keyframes masked-animation {
+      0% {
+          background-position: 0  0;
+      }
+      100% {
+          background-position: -100%  0;
+      }
+  }
   .header a, .footer a {
     color: #666;
     text-decoration: none;
@@ -209,7 +229,7 @@ export default {
     width: 20px;
     border-radius: 10px;
     color: white;
-    background-color: #eb767d;
+    background-color: #2e591e;
     font-size: 16px;
     font-weight: bold;
     text-align: center;

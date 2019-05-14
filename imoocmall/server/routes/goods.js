@@ -76,7 +76,6 @@ router.post("/addCart", (req,res,next) =>{ // 向服务器提交数据
   // 获取user模型
   // 获取客户端传来的productId
   let productId = req.body.productId;
-  console.log("45465"+userId)
   let User = require('../models/user');
   // 获取用户信息并且给该用户插数据
   User.findOne({

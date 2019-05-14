@@ -612,15 +612,15 @@ a:hover {
   font-weight: bold;
   -webkit-transition: all .3s ease-out;
   transition: all .3s ease-out;
-  border: 1px solid #d1434a;
-  color: #d1434a;
+  border: 1px solid #3a9627;
+  color: #2c7f37;
   text-transform: uppercase;
   letter-spacing: .25em;
   white-space: nowrap;
 }
 
 .btn:hover, .btn[href]:hover {
-  background-color: #ffe5e6;
+  background-color: #e5f3ff;
   -webkit-transition: all .3s ease-out;
   transition: all .3s ease-out;
 }

@@ -145,3 +145,66 @@ mutations:{
 # 阅读器开发
 ![](./img/需求1.png)
 ![](./img/难点1.png)
+## 路由
+```javaScript
+routes: [
+  {
+    path: '/',
+    redirect: '/ebook'
+  },
+  {
+    path: '/ebook',
+    component: () => import('./views/ebook/index.vue'),
+    children: [ // 子路由
+      {
+        path: ':filename', // 动态路由，接收filename
+        component: () => import('./components/ebook/EbookReader.vue')
+      }
+    ]
+  }
+]
+```
+## epubjs
+>引入epub
+```
+import Epub from 'epubjs'
+global.epub = Epub
+```
+>配置电子书
+```javaScript
+export default {
+  mounted() {
+    this.$store.dispatch('setFileName', this.$route.params.fileName.split('|').join('/'))
+      .then(() => { // 异步调用，所以用action
+        this.initEpub()
+      })
+  },
+  computed: {
+    ...mapGetters(['fileName'])
+  },
+  methods: {
+    initEpub() { // 初始化渲染电子书
+      const url = 'http://localhost:8082/epub/' + this.fileName + '.epub'
+      this.book = new Epub(url)
+      this.rendition = this.book.renderTo('read', { // epubjs的方法，渲染图书的
+        width: innerWidth,
+        height: innerHeight,
+        method: 'default' // 为了在微信上可以显示
+      })
+      this.rendition.display()
+    }
+  }
+}
+```
+>关于翻转
+```javaScript
+goToPrePage () { // 跳转到上一页
+  this.book.prevPage()
+},
+goToNextPage () { // 跳转到下一页
+  this.book.nextPage()
+},
+```
+## vuex+mixin
+## vue-i18n
+## 动态切换主题+书签手势操作
