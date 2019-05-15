@@ -1,11 +1,16 @@
 <template>
   <div class="ebook">
+    <ebook-Title></ebook-Title>
     <ebook-reader></ebook-reader>
+    <ebook-Menu></ebook-Menu>
     <router-view/>
   </div>
 </template>
 <script>
 import EbookReader from '../../components/ebook/EbookReader.vue'
+import EbookMenu from '../../components/ebook/EbookMenu.vue'
+import EbookTitle from '../../components/ebook/EbookTitle.vue'
+
 export default {
   data() {
     return {
@@ -13,7 +18,9 @@ export default {
     }
   },
   components: {
-    EbookReader
+    EbookReader,
+    EbookMenu,
+    EbookTitle
   }
 }
 </script>

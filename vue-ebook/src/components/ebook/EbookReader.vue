@@ -1,31 +1,30 @@
 <template>
 <!-- 用来接收动态路由 -->
-  <div class="ebook-reader">split
+  <div class="ebook-reader">
     <!-- 创建容器展示电子书 -->
     <div id="read"></div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { ebookMixin } from '../../utils/mixin'
+
 import Epub from 'epubjs'
 global.epub = Epub
 export default {
+  mixins: [ebookMixin],
   mounted() {
-    const fileName = this.$route.params.fileName.split('|').join('/')
-    this.$store.dispatch('setFileName', fileName)
+    this.setFileName(this.$route.params.fileName.split('|').join('/'))
       .then(() => { // 异步调用，所以用action
         this.initEpub()
       })
-  },
-  computed: {
-    ...mapGetters(['fileName'])
   },
   methods: {
     // 跳到上一页
     prevPage() {
       if (this.rendition) {
         this.rendition.prev()
+        this.hideTitleAndMenu()
       }
     },
 
@@ -33,14 +32,21 @@ export default {
     nextPage() {
       if (this.rendition) {
         this.rendition.next()
+        this.hideTitleAndMenu()
       }
     },
 
     // 菜单展示/隐藏
     toggleTitleAndMenu() {
-
+      this.setMenuVisible(!this.menuVisible)
     },
 
+    // 当翻页时菜单隐藏
+    hideTitleAndMenu() {
+      this.setMenuVisible(false)
+    },
+
+    // 初始化书
     initEpub() { // 初始化渲染电子书
       const url = 'http://localhost:8082/epub/' + this.fileName + '.epub'
       this.book = new Epub(url)
@@ -50,19 +56,14 @@ export default {
         method: 'default' // 为了在微信上可以显示
       })
       this.rendition.display()
-      console.log(this.rendition)
       this.rendition.on('touchstart', event => { // 开始触摸
-        console.log(event)
         this.touchStartX = event.changedTouches[0].clientX
         this.touchStartTime = event.timeStamp
-        console.log('ddd')
       })
-      this.rendition.on('touched', event => { // 触摸结束
+      this.rendition.on('touchend', event => { // 触摸结束
         const offsetX = event.changedTouches[0].clientX - this.touchStartX
         const time = event.timeStamp - this.touchStartTime
-        console.log(event)
-        console.log(offsetX, time)
-        if (time < 500 && offsetX < -40) { // 返回上一页
+        if (time < 500 && offsetX > 40) { // 返回上一页
           this.prevPage()
         } else if (time < 500 && offsetX < -40) { // 执行下一页
           this.nextPage()

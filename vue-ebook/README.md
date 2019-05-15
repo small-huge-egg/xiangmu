@@ -197,14 +197,46 @@ export default {
 }
 ```
 >关于翻转
+* 手势触摸思想：
+  * 利用epubjs提供的on方法，可以使用js提供的触摸事件，touchstart(开始触摸)，touchend(结束触摸)，另外触摸事件可以使用dom方法，如clientx,所以当结束触摸的位置>开始触摸的位置且过程小于500和滑动距离>50,证明是在向前滑动,于是启动向前滑动事件（epubjs提供了prevPage方法），同理向后滑动(nextPage方法）
 ```javaScript
-goToPrePage () { // 跳转到上一页
-  this.book.prevPage()
+  this.rendition.on('touchstart', event => { // 开始触摸
+    this.touchStartX = event.changedTouches[0].clientX
+    this.touchStartTime = event.timeStamp
+  })
+  this.rendition.on('touchend', event => { // 触摸结束
+    const offsetX = event.changedTouches[0].clientX - this.touchStartX
+    const time = event.timeStamp - this.touchStartTime
+    if (time < 500 && offsetX > 40) { // 返回上一页
+      this.prevPage()
+    } else if (time < 500 && offsetX < -40) { // 执行下一页
+      this.nextPage()
+    } else {
+      this.toggleTitleAndMenu() // 菜单展示/隐藏
+    }
+    event.preventDefault() // 禁止默认事件
+    event.stopPropagation() // 禁止传播
+  })
+prevPage() {
+  if (this.rendition) {
+    this.rendition.prev()
+  }
 },
-goToNextPage () { // 跳转到下一页
-  this.book.nextPage()
+// 跳到下一页
+nextPage() {
+  if (this.rendition) {
+    this.rendition.next()
+  }
 },
 ```
+### 总结一下epubjs方法：
+* 书定义：this.book = new Epub(url)
+* 渲染书：this.rendition = this.book.renderTo('read',function{})
+* 展示书：this.rendition.display()
+* 监听书触摸事件：this.rendition.on
+* 何时触摸：event.timeStamp
+* 向前/后翻页：this.rendition.prev()，this.rendition.next()
 ## vuex+mixin
+> 因为每个使用vuex的组件都需要引入{mapGetters} from 'vuex',并且整个计算属性存放state元素，为了代码复用，于是把这些代码抽象出来放在src->utils->mixin.js，然后各个组件只需引入该文件`import {ebookMixin} from '路经'`然后定义`mixins:[ebookMixin]`即可。此外，actions也同样此操作
 ## vue-i18n
 ## 动态切换主题+书签手势操作
