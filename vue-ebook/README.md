@@ -33,6 +33,9 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ![](./img/1.png)
 ![](./img/2.png)
 ![](./img/3.png)
+# 插件：
+* 安装localstorage库
+  * `cnpm i --save web-storage-cache`
 # 关于epub
 * cnpm i --save epubjs
 ```javaScript
@@ -236,7 +239,38 @@ nextPage() {
 * 监听书触摸事件：this.rendition.on
 * 何时触摸：event.timeStamp
 * 向前/后翻页：this.rendition.prev()，this.rendition.next()
+* 设置字体：this.book.rendition.themes.fontSize
 ## vuex+mixin
 > 因为每个使用vuex的组件都需要引入{mapGetters} from 'vuex',并且整个计算属性存放state元素，为了代码复用，于是把这些代码抽象出来放在src->utils->mixin.js，然后各个组件只需引入该文件`import {ebookMixin} from '路经'`然后定义`mixins:[ebookMixin]`即可。此外，actions也同样此操作
 ## vue-i18n
-## 动态切换主题+书签手势操作
+## 动态切换主题+字体+书签手势操作
+> 字体：epubjs的方法：`this.book.rendition.themes.fontSize`
+```
+setFontSize(fontSize) { // 设置字体字号
+  this.book.rendition.themes.fontSize(fontSize)
+}
+```
+## 安装localstorage库
+* `cnpm i --save web-storage-cache`
+* 引包`import Storage from 'web-storage-cache'`
+* 实例化对象`const localStorage = new Storage()`
+```javaScript
+// 写入数据
+export function setLocalStorage(key, value) {
+  return localStorage.set(key, value)
+}
+
+// 获取数据
+export function getLocalStorage(key) {
+  return localStorage.get(key)
+}
+// 获取缓存
+export function removeLocalStorage(key) {
+  return localStorage.delete(key)
+}
+
+// 清空
+export function clearLocalStorage(key) {
+  return localStorage.clear()
+}
+```

@@ -1,4 +1,5 @@
 <template>
+<div>
  <transition name="slide-up">
     <div class="setting-wrapper" v-show="menuVisible && settingVisible === 0">
       <div class="setting-font-size">
@@ -16,12 +17,22 @@
         </div>
         <div class="preview" :style="{fontSize: fontSizeList[fontSizeList.length - 1].fontSize + 'px'}">A</div>
       </div>
+      <div class="setting-font-family" @click="showFontFamilyPopup">
+        <div class="setting-font-family-text-wrapper">
+          <span class="setting-font-family-text">{{defaultFontFamily}}</span>
+        </div>
+        <div class="setting-font-family-icon-wrapper">
+          <span class="icon-forward"></span>
+        </div>
+      </div>
     </div>
  </transition>
+</div>
 </template>
 <script>
 import { ebookMixin } from '../../utils/mixin'
 import { FONT_SIZE_LIST } from '../../utils/book'
+import { saveFontSize } from '../../utils/localStorage'
 export default {
   mixins: [ebookMixin],
   data() {
@@ -29,8 +40,17 @@ export default {
       fontSizeList: FONT_SIZE_LIST
     }
   },
+
   methods: {
-    setFontSize(fontSize) {}
+    setFontSize(fontSize) { // 设置字体字号
+      this.setDefaultFontSize(fontSize)
+      saveFontSize(this.fileName, fontSize)
+      this.currentBook.rendition.themes.fontSize(fontSize + 'px')
+      // this.setCurrentBook.rendition.themes.fontSize(this.defaultFontSize + 'px')
+    },
+    showFontFamilyPopup() { // 弹出弹出层
+      this.setFontFamilyVisible(true)
+    }
   }
 }
 </script>
@@ -38,15 +58,18 @@ export default {
 @import '../../assets/styles/global';
 .setting-wrapper {
     position: absolute;
+    display: flex;
+    flex-direction: column;
     bottom: px2rem(48);
     left: 0;
     z-index: 101;
     width: 100%;
-    height: px2rem(60);
+    height: px2rem(90);
     background: white;
     box-shadow: 0 px2rem(-8) px2rem(8) rgba(0, 0, 0, .15);
     .setting-font-size {
       display: flex;
+      flex: 2;
       height: 100%;
       .preview {
         flex: 0 0 px2rem(40);
@@ -104,6 +127,17 @@ export default {
             }
           }
         }
+      }
+    };
+    .setting-font-family {
+      flex: 1;
+      font-size: px2rem(14);
+      @include center;
+      .setting-font-family-text-wrapper {
+        @include center;
+      };
+      .setting-font-family-icon-wrapper {
+        @include center;
       }
     }
 }
