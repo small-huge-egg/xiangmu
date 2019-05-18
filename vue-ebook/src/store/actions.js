@@ -2,6 +2,9 @@ const actions = {
   setFileName: ({ commit }, fileName) => { // 文件名
     return commit('SET_FILENAME', fileName)
   },
+    setCurrentBook: ({ commit }, currentBook) => { // 这本书
+    return commit('SET_CURRENT_BOOK', currentBook)
+  },
   setMenuVisible: ({ commit }, menuVisible) => { // 菜单展示
     return commit('SET_MENUVISIBLE', menuVisible)
   },
@@ -31,9 +34,6 @@ const actions = {
   },
   setIsPaginating: ({ commit }, isPaginating) => {
     return commit('SET_IS_PAGINATING', isPaginating)
-  },
-  setCurrentBook: ({ commit }, currentBook) => { // 这本书
-    return commit('SET_CURRENT_BOOK', currentBook)
   },
   setNavigation: ({ commit }, navigation) => {
     return commit('SET_NAVIGATION', navigation)

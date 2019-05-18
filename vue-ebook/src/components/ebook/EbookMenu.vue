@@ -1,5 +1,6 @@
 <template>
 <div>
+  <!-- 该组件是整个底部菜单页面 -->
   <transition name="slide-up">
     <div class="menu-wrapper" :class="{'hide-box-shadow':!menuVisible || settingVisible >= 0}" v-show="menuVisible">
       <div class="icon-wrapper">
@@ -18,20 +19,28 @@
   </transition>
   <ebook-setting-font></ebook-setting-font>
   <ebook-setting-font-popup></ebook-setting-font-popup>
+  <ebook-setting-theme></ebook-setting-theme>
+  <ebook-setting-progress></ebook-setting-progress>
 </div>
 </template>
 <script>
 import { ebookMixin } from '../../utils/mixin'
 import EbookSettingFont from './EbookSettingFont'
 import EbookSettingFontPopup from './EbookSettingFontPopup'
+import EbookSettingTheme from './EbookSettingTheme'
+import EbookSettingProgress from './EbookSettingProgress'
+
 export default {
   mixins: [ebookMixin],
   components: {
     EbookSettingFont,
-    EbookSettingFontPopup
+    EbookSettingFontPopup,
+    EbookSettingTheme,
+    EbookSettingProgress
   },
   methods: {
-    showSetting(key) {
+    showSetting(key) { // 当点击底部菜单的key项，把该项详情通过vuex的actions的setSettingVisible改变
+    // 通过key使详情动态显示，多么优雅的key
       this.setSettingVisible(key)
     }
   }

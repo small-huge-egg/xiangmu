@@ -26,7 +26,7 @@ export function saveHome(home) {
   return setLocalStorage('home', home, 1800)
 }
 
-export function getLocale() {
+export function getLocale() { // 国际化
   return getLocalStorage('locale')
 }
 

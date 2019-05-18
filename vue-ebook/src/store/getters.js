@@ -1,5 +1,6 @@
 const book = {
   fileName: state => state.book.fileName,
+  currentBook: state => state.book.currentBook, // 这本书
   menuVisible: state => state.book.menuVisible,
   settingVisible: state => state.book.settingVisible,
   defaultFontSize: state => state.book.defaultFontSize,
@@ -10,7 +11,6 @@ const book = {
   progress: state => state.book.progress,
   section: state => state.book.section,
   isPaginating: state => state.book.isPaginating,
-  currentBook: state => state.book.currentBook, // 这本书
   navigation: state => state.book.navigation,
   cover: state => state.book.cover,
   metadata: state => state.book.metadata,

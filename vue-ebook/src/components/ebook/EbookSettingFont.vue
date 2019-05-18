@@ -46,7 +46,6 @@ export default {
       this.setDefaultFontSize(fontSize)
       saveFontSize(this.fileName, fontSize)
       this.currentBook.rendition.themes.fontSize(fontSize + 'px')
-      // this.setCurrentBook.rendition.themes.fontSize(this.defaultFontSize + 'px')
     },
     showFontFamilyPopup() { // 弹出弹出层
       this.setFontFamilyVisible(true)

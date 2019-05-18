@@ -54,7 +54,7 @@ global.epub = Epub
 * src-main.js导入：`import './assets/styles/icon.css'`
 * `<span class="icon-bookmark"></span>`就可看见图标
 ## 准备Web字体
-* 浏览器工具书签有资料，这里存放在src->public->fonts
+* 浏览器工具书签有资料，这里存放在public->fonts
 * 使用方式1（通过js引入）：(无效)
   * main.js：`import 保存某种字体的文件目录`
   * app.vue把需要改变的字体：css:font-family: 'Days One' // 字体名字
@@ -232,6 +232,73 @@ nextPage() {
   }
 },
 ```
+>关于设置主题：
+```javaScript
+function setTheme(index) {
+  this.rendition.themes.select(this.themeList[index].name)
+  this.defaultTheme = index
+}
+```
+>关于注册主题：
+```javaScript
+function registerTheme(index) {
+  this.themeList.forEach(theme => { // 注册样式
+    this.rendition.themes.register(theme.name, theme.style)
+  })
+}
+```
+* 具体内容：
+  * 当点击第index项的主题时，将themeList的index项的信息提取出来，将vuex的defaultTheme改变为index里的name,然后利用epubjs的select设置主题，并将主题名字保存在localStorage.
+  * 在ebookReader里利用epubjs的register方法注册全部主题名字和样式，然后利用epubjs的select设置主题，避免刷新后在未设置主题时不给我之前的主题
+```javaScript
+// mixin.js
+computed: {
+  themeList() {
+    return themeList(this)
+  }
+}
+
+// ebookReader.vue
+// 初始化主题
+initTheme() {
+  let defaultTheme = getTheme(this.fileName) // 从localStorage取出主题名字
+    if (!defaultTheme) { // 如果本地存储没有存主题名字，将主题列表的第一个设为主题
+      defaultTheme = this.themeList[0].name
+      this.setDefaultTheme(defaultTheme) // 改变默认主题名字
+      saveTheme(this.fileName, defaultTheme) // 存储名字
+    }
+  this.themeList.forEach(theme => { // 注册样式
+    this.rendition.themes.register(theme.name, theme.style)
+  })
+  this.rendition.themes.select(defaultTheme)
+},
+
+// ebookSettingTheme.vue
+setTheme(index) { // 设置主题
+  const theme = this.themeList[index] // 取出相应的主题信息
+  this.setDefaultTheme(theme.name).then(() => { // 改变默认主题为theme.name,
+    this.currentBook.rendition.themes.select(this.defaultTheme) // 名字改了之后把这本书的主题给改了
+  })
+  saveTheme(this.fileName, theme.name) // 保存主题名称
+}
+```
+> 关于菜单的主题颜色也改变：
+* 因为改变主题颜色通过epubjs只能改变电子书主题，为了改变其他部分主题，使用动态添加link标签，将里面的href设为静态服务器上css文件的路径。
+  * 通过addCss函数添加link,通过switch主题名字设置href的值传给addCss
+  * 初始化调用，点击主题的时候调用，所以把addCss设为全局的方法放在book.js里，把switch主题名字设置href的方法放在了mixin.js里
+* 因为每次点击主题都调用了addCss方法，所以定义一个全局清除link的方法,并在·把switch主题名字设置href的方法·最前面调用删除之前link的函数
+* 详情参照util->book.js和mixin.js
+* 由此可见参数的重要性，这里面要是没有设置参数href会很复杂，通过switch设置href这个操作是关键
+>关于进度条
+* html部分：type="range",@change,@input事件
+``` html
+<input class="progress" type="range"
+@change="onProgressChange($event.target.value)" @input="onProgressInput($event.target.value)>
+```
+* js部分
+```javaScript
+
+```
 ### 总结一下epubjs方法：
 * 书定义：this.book = new Epub(url)
 * 渲染书：this.rendition = this.book.renderTo('read',function{})
@@ -239,10 +306,47 @@ nextPage() {
 * 监听书触摸事件：this.rendition.on
 * 何时触摸：event.timeStamp
 * 向前/后翻页：this.rendition.prev()，this.rendition.next()
-* 设置字体：this.book.rendition.themes.fontSize
+* 设置字体：this.book.rendition.themes.fontSize(字体大小)
+* 设置主题：this.book.rendition.themes.select(主题名字)
+* 注册主题：this.book.rendition.themes.register(主题名字,主题样式)
+* 设置字体样式：this.book.rendition.themes.font(字体样式名字)
+* 改变字体样式之引入字体文件（只能放在我的enginx静态服务器下的一个文件夹里）：
+```javaScript
+this.rendition.hooks.content.register(contents => {
+  Promise.all([
+    contents.addStylesheet(`${process.env.VUE_APP_RES_URL}/fonts/daysOne.css`),
+    contents.addStylesheet(`${process.env.VUE_APP_RES_URL}/fonts/cabin.css`),
+    contents.addStylesheet(`${process.env.VUE_APP_RES_URL}/fonts/montserrat.css`),
+    contents.addStylesheet(`${process.env.VUE_APP_RES_URL}/fonts/tangerine.css`)
+  ]).then(() => {
+    console.log('字体已经全部加在完毕')
+  })
+})
+```
 ## vuex+mixin
 > 因为每个使用vuex的组件都需要引入{mapGetters} from 'vuex',并且整个计算属性存放state元素，为了代码复用，于是把这些代码抽象出来放在src->utils->mixin.js，然后各个组件只需引入该文件`import {ebookMixin} from '路经'`然后定义`mixins:[ebookMixin]`即可。此外，actions也同样此操作
-## vue-i18n
+> 因为有些样式想要弄成全局样式，利用scss的@mixin定义对象，调用某个对象的时候直接`@include 对象名`。 用@function定义函数，这里调用的时候直接`padding:px2rem(12)`
+> 
+```
+$ratio: 375 / 10;
+
+@function px2rem($px) {
+  @return $px / $ratio + rem;
+}
+@mixin center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+```
+## vue-i18n国际化
+* 安装：` cnpm i --save vue-i18n`
+* import VueI18n from 'vue-i18n'
+* Vue.use(VueI18n)
+* main.js:
+  * import i18n from './lang'
+  * 在main.js的实例中挂载i18n
+* 使用:`<span">{{$t('book.selectFont')}}</span>`
 ## 动态切换主题+字体+书签手势操作
 > 字体：epubjs的方法：`this.book.rendition.themes.fontSize`
 ```
@@ -274,3 +378,11 @@ export function clearLocalStorage(key) {
   return localStorage.clear()
 }
 ```
+# 坑
+>为了其它组件获取这本书从而改变这本书下的一些样式，如字体大小，背景等，于是我在vuex定义了一个currentBook，设置了mutation,getter,action,并在初始化这本书的时候`this.setCurrentBook=this.book`,但是我在其它组件上调用currentBook的时候为空，vuex上也显示currentBook为空，于是找错
+* 先从store下手，两天反复核对了好几遍没发现store有任何错误
+* 于是console.log了很多setCurrentBook，current,current仍然为空。注意setCurrentBook是我action定义的方法。
+* 想过重新建一个store2,但是由于原本代码封装性太强弄一下太麻烦，其实我误会了，很简单的，我的store文件夹有个book.js专门用来定义state和mutation,actions.js专门用来定义actions,getters.js专门用来定义getter的函数，然后这些文件导出并被index.js文件引用。为了实现代码简单，我又创建了minxin.js用来将ction,getter方法进行封装解构， 往下看
+* 最终还是换了个简单的方法，不整封装了，直接`this.$store.commit('SET_CURRENT_BOOK', this.book),this.$store.dispatch('setCurrentBook', this.book)`就成功了，查看current的值也正确了。
+* 至今不知道为什么封装的就不能改变current值,其他的值完全ok
+* 最重要的是我找错步骤是不对的，当我未从store找到错误时，我应该换个方式改变currenBook的值，即原始方法弄，而不是继续通过封装的方式改变
