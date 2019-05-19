@@ -4,12 +4,12 @@
       <div class="setting-wrapper" v-show="menuVisible&&settingVisible===2">
         <div class="setting-progress">
           <div class="read-time-wrapper">
-            <span class="read-time-text">111</span>
+            <span class="read-time-text">{{getReadTime()}}</span>
             <span class="icon-forward"></span>
           </div>
           <div class="progress-wrapper">
-            <div class="progress-icon-wrapper">
-              <span class="icon-back" @click="preSection()"></span>
+            <div class="progress-icon-wrapper"  @click="preSection()">
+              <span class="icon-back"></span>
             </div>
             <input class="progress" type="range"
                   max="100"
@@ -19,12 +19,13 @@
                   :value="progress"
                   :disabled="!bookAvailable"
                   ref="progress">
-            <div class="progress-icon-wrapper">
-              <span class="icon-forward" @click="nextSection()"></span>
+            <div class="progress-icon-wrapper" @click="nextSection()">
+              <span class="icon-forward"></span>
             </div>
           </div>
           <div class="text-wrapper">
-            <span>{{bookAvailable ? progress + '%' : '加载中...'}}</span>
+            <span class="progress-section-text">{{getSectionName}}</span>
+            <span>({{bookAvailable ? progress + '%' : '加载中' }})</span>
           </div>
         </div>
       </div>
@@ -33,29 +34,54 @@
 </template>
 <script>
 import { ebookMixin } from '../../utils/mixin'
+import { saveProgress } from '../../utils/localStorage'
 export default {
   mixins: [ebookMixin],
+  computed: {
+    getSectionName() {
+      return this.section ? this.navigation[this.section].label : ''
+    }
+  },
   methods: {
-    onProgressChange (progress) {
+    onProgressChange (progress) { // 当input里的值发生改变时
       this.setProgress(progress).then(() => {
-        this.displayProgress()
+        this.displayProgress() // 展示相应的进度页面
+        this.updateProgressBg() // 更改进度条背景
+      })
+      saveProgress(this.fileName, progress)
+    },
+    onProgressInput (progress) { // 监听Input的内容
+      this.setProgress(progress).then(() => {
         this.updateProgressBg()
       })
     },
-    onProgressInput (progress) {
-      this.setProgress(progress).then(() => {
-        this.updateProgressBg()
-      })
-    },
-    displayProgress () {
+    displayProgress () { // 跳转对应进度的页面
       const cfi = this.currentBook.locations.cfiFromPercentage(this.progress / 100)
-      this.currentBook.rendition.display(cfi)
+      this.display(cfi)
     },
-    updateProgressBg() {
+    updateProgressBg() { // 更新背景
       this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`
     },
-    preSection() {},
-    nextSection() {}
+    preSection() {
+      if (this.section > 0 && this.bookAvailable) {
+        this.setSection(this.section - 1).then(() => {
+          this.displaySection()
+        })
+      }
+    },
+    nextSection() {
+      if (this.section < this.currentBook.spine.length - 1 && this.bookAvailable) {
+        this.setSection(this.section + 1).then(() => {
+          this.displaySection()
+        })
+      }
+    },
+    displaySection () {
+      const sectionInfo = this.currentBook.section(this.section)
+      if (sectionInfo && sectionInfo.href) {
+        this.display(sectionInfo.href)
+      }
+    }
   },
   updated() {
     this.updateProgressBg()
@@ -121,7 +147,12 @@ export default {
           width: 100%;
           color: #333;
           font-size: px2rem(12);
-          text-align: center;
+          padding: 0 px2rem(12);
+          box-sizing: border-box;
+          @include center;
+          .progress-section-text {
+            @include ellipsis;
+          }
         }
       }
   }

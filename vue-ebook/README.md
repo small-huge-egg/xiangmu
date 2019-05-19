@@ -297,7 +297,69 @@ setTheme(index) { // 设置主题
 ```
 * js部分
 ```javaScript
-
+methods: {
+  onProgressChange (progress) {
+    this.setProgress(progress).then(() => {
+      this.displayProgress()
+      this.updateProgressBg()
+    })
+  },
+  onProgressInput (progress) {
+    this.setProgress(progress).then(() => {
+      this.updateProgressBg()
+    })
+  },
+  displayProgress () {
+    const cfi = this.currentBook.locations.cfiFromPercentage(this.progress / 100)
+    this.currentBook.rendition.display(cfi)
+  },
+  updateProgressBg() { // backgroundSize设置为滑动位置至结束
+    this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`
+  },
+},
+updated() {
+  this.updateProgressBg()
+}
+```
+>关于翻章节
+```javaScript
+preSection() { // 上一章
+  if (this.section > 0 && this.bookAvailable) {
+    this.setSection(this.section - 1).then(() => {
+      this.displaySection()
+    })
+  }
+},
+nextSection() {
+  if (this.section < this.currentBook.spine.length - 1 && this.bookAvailable) {
+    this.setSection(this.section + 1).then(() => {
+      this.displaySection()
+    })
+  }
+},
+displaySection () {
+  const sectionInfo = this.currentBook.section(this.section)
+  if (sectionInfo && sectionInfo.href) {
+    this.currentBook.rendition.display(sectionInfo.href).then(() => {
+      this.refreshLocation()
+    })
+  }
+},
+refreshLocation() {
+  const currentLocation = this.currentBook.rendition.currentLocation()
+  const progress = this.currentBook.locations.percentageFromCfi(currentLocation.start.cfi)
+  this.setProgress(Math.floor(progress * 100))
+}
+```
+> 分页算法
+```javaScript
+this.book.ready.then(() => {
+  return this.book.locations.generate(750 * (window.innerWidth / 375) *
+  (getFontSize(this.fileName) / 16)).then(locations => {
+    this.setBookAvailable(true)
+    this.refreshLocation()
+  })
+})
 ```
 ### 总结一下epubjs方法：
 * 书定义：this.book = new Epub(url)
@@ -323,6 +385,33 @@ this.rendition.hooks.content.register(contents => {
   })
 })
 ```
+* 获取一级目录：this.currentBook.navigation.get(sectionInfo.href)
+* 获取一级目录标题：this.currentBook.navigation.get(sectionInfo.href).label
+* 图书观看百分比：cfi=this.currentBook.locations.cfiFromPercentage(this.progress / 100)
+* 渲染指定地点的图书：this.currentBook.rendition.display(cfi)
+* 图书所有章节详情：this.currentBook.spine
+* 图书的第几章详情：const sectionInfo = this.currentBook.section(第几章)
+* 某章图书的链接，href是一个html，如果加个display就渲染了这一章：this.currentBook.section.href
+* 当前章节的详情：this.currentBook.rendition.currentLocation()
+* 当前章节的开始页面：this.currentBook.rendition.currentLocation().start.cfi
+* 当前页面位于全书的百分比：this.currentBook.locations.percentageFromCfi（某一章）
+* 获取图书封皮:this.book.loaded.cover
+* 获取图书作者：this.book.loaded.metadata.creator
+* 获取图书名字：this.book.loaded.metadata.title
+```javaScript
+// 获取图书的基本信息
+parseBook() {
+  this.book.loaded.cover.then(cover => { // 图书封面
+    this.book.archive.createUrl(cover).then(url => {
+      this.setCover(url)
+    })
+  })
+  this.book.loaded.metadata.then(metadata => { // 图书作者
+    this.setMetadata(metadata)
+  })
+},
+```
+* 获取图书章节目录(是个数组)：this.book.navigation.toc
 ## vuex+mixin
 > 因为每个使用vuex的组件都需要引入{mapGetters} from 'vuex',并且整个计算属性存放state元素，为了代码复用，于是把这些代码抽象出来放在src->utils->mixin.js，然后各个组件只需引入该文件`import {ebookMixin} from '路经'`然后定义`mixins:[ebookMixin]`即可。此外，actions也同样此操作
 > 因为有些样式想要弄成全局样式，利用scss的@mixin定义对象，调用某个对象的时候直接`@include 对象名`。 用@function定义函数，这里调用的时候直接`padding:px2rem(12)`
@@ -377,6 +466,30 @@ export function removeLocalStorage(key) {
 export function clearLocalStorage(key) {
   return localStorage.clear()
 }
+```
+# 难点：
+>做目录时，由于数组里面可能嵌套数组然后再嵌套数组，为了改成一维数组在显示目录时直接将不规则数组传进去就好了。其次这样全部拆成了一级目录，为了分配二级目录好设置css的margin，利用filter和epubjs的id,parent将多级目录形成新数组，并将多级目录的级数通过level计算
+```javaScript
+// 将多维数组转化为一维数组
+// book.js
+export function flatten(array) {
+  return [].concat(...array.map(item => [].concat(item, ...flatten(item.subitems))))
+}
+// EbookMenu.vue
+this.book.loaded.navigation.then((nav) => { // 获取到全书章节之后
+  const navItem = flatten(nav.toc) // 被拆分的一级目录
+  function find(item, level = 0) {
+    // 当当前项的parent属性为underfind时（代表是一级目录epubjs给的）,level=0
+    // 当当前项的parent存在时，代表不是一级目录。然后寻找满足其他数组的id和item.parent相等的的数组
+    // 如果找到了就让当前项的level+1，并且让新找到的成立一个数组，然后继续找。。。
+    return !item.parent ? level : find(navItem.filter(parentItem =>
+    parentItem.id === item.parent)[0], ++level)
+  }
+  navItem.forEach(item => { // 遍历每一项，添加level
+    item.level = find(item)
+  })
+  this.setNavigation(navItem)
+})
 ```
 # 坑
 >为了其它组件获取这本书从而改变这本书下的一些样式，如字体大小，背景等，于是我在vuex定义了一个currentBook，设置了mutation,getter,action,并在初始化这本书的时候`this.setCurrentBook=this.book`,但是我在其它组件上调用currentBook的时候为空，vuex上也显示currentBook为空，于是找错

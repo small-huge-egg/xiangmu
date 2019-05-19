@@ -1,5 +1,6 @@
 import { mapGetters, mapActions } from 'vuex'
-import { themeList, addCss, removeAllCss } from './book'
+import { themeList, addCss, removeAllCss, getReadTimeByMinute } from './book'
+import { saveLocation } from './localStorage'
 
 export const ebookMixin = {
   computed: {
@@ -27,6 +28,14 @@ export const ebookMixin = {
     ]),
     themeList() {
       return themeList(this)
+    },
+    getSectionName() {
+      if (this.section) {
+        const section = this.currentBook.section(this.section)
+        if (section && section.href && this.currentBook && this.currentBook.navigation) {
+          return this.navigation[this.section].label
+        }
+      }
     }
   },
   methods: {
@@ -72,6 +81,38 @@ export const ebookMixin = {
           addCss(`${process.env.VUE_APP_RES_URL}/theme/theme_default.css`)
           break
       }
+    },
+    refreshLocation() { // 更新章节
+      const currentLocation = this.currentBook.rendition.currentLocation()
+      if (currentLocation && currentLocation.start) {
+        const startCfi = currentLocation.start.cfi
+        const progress = this.currentBook.locations.percentageFromCfi(startCfi)
+        this.setProgress(Math.floor(progress * 100))
+        this.setSection(currentLocation.start.index)
+        saveLocation(this.fileName, startCfi)
+      }
+    },
+    display(target, cb) {
+      if (target) {
+        this.currentBook.rendition.display(target).then(() => {
+          this.refreshLocation()
+          if (cb) cb()
+        })
+      } else {
+        this.currentBook.rendition.display().then(() => {
+          this.refreshLocation()
+          if (cb) cb()
+        })
+      }
+      this.hideTitleAndMenu()
+    },
+    getReadTime() { // 阅读时间
+      return this.$t('book.haveRead').replace('$1', getReadTimeByMinute(this.fileName))
+    },
+    hideTitleAndMenu() { // 全局隐藏设置
+      this.setMenuVisible(false) // 隐藏菜单
+      this.setSettingVisible(-1) // 隐藏设置
+      this.setFontFamilyVisible(false) // 隐藏字体设置
     }
   }
 }

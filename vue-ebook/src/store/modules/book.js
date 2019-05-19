@@ -10,7 +10,7 @@ const book = {
     defaultTheme: 'default', // 默认主题
     bookAvailable: false,
     progress: 0, // 看书进度百分比
-    section: 0,
+    section: 3,
     isPaginating: true,
     navigation: null,
     cover: null,

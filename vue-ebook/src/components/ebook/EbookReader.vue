@@ -9,7 +9,8 @@
 <script>
 import Epub from 'epubjs'
 import { ebookMixin } from '../../utils/mixin'
-import { getFontFamily, saveFontFamily, getFontSize, saveFontSize, getTheme, saveTheme } from '../../utils/localStorage'
+import { getFontFamily, saveFontFamily, getFontSize, saveFontSize, getTheme, saveTheme, getLocation } from '../../utils/localStorage'
+import { flatten } from '../../utils/book'
 
 global.epub = Epub
 
@@ -25,16 +26,20 @@ export default {
     // 跳到上一页
     prevPage() {
       if (this.rendition) {
-        this.rendition.prev()
-        this.hideTitleAndMenu()
+        this.rendition.prev().then(() => {
+           this.refreshLocation()
+        })
+        this.hideTitleAndMenu() // 当翻页时隐藏
       }
     },
 
     // 跳到下一页
     nextPage() {
       if (this.rendition) {
-        this.rendition.next()
-        this.hideTitleAndMenu()
+        this.rendition.next().then(() => {
+           this.refreshLocation()
+        })
+        this.hideTitleAndMenu() // 当翻页时隐藏
       }
     },
 
@@ -45,13 +50,6 @@ export default {
         this.setFontFamilyVisible(false)
       }
       this.setMenuVisible(!this.menuVisible)
-    },
-
-    // 当翻页时隐藏
-    hideTitleAndMenu() {
-      this.setMenuVisible(false) // 隐藏菜单
-      this.setSettingVisible(-1) // 隐藏设置
-      this.setFontFamilyVisible(false) // 隐藏字体设置
     },
 
     // 初始化主题
@@ -99,7 +97,8 @@ export default {
         method: 'default' // 为了在微信上可以显示
       })
        // 书展示完之后将默认保存
-      this.rendition.display().then(() => { // 书展示完之后将默认保存
+      const location = getLocation(this.fileName)
+      this.display(location, () => {
         this.initTheme()
         this.initFontSize()
         this.initFontFamily()
@@ -139,6 +138,32 @@ export default {
       })
     },
 
+    // 获取图书的基本信息
+    parseBook() {
+      this.book.loaded.cover.then(cover => { // 图书封面
+        this.book.archive.createUrl(cover).then(url => {
+          this.setCover(url)
+        })
+      })
+      this.book.loaded.metadata.then(metadata => { // 图书作者
+        this.setMetadata(metadata)
+      })
+      this.book.loaded.navigation.then((nav) => {
+        const navItem = flatten(nav.toc) // 被拆分的一级目录
+        function find(item, level = 0) {
+          // 当当前项的parent属性为underfind时（代表是一级目录epubjs给的）,level=0
+          // 当当前项的parent存在时，代表不是一级目录。然后寻找满足其他数组的id和item.parent相等的的数组
+          // 如果找到了就让当前项的level+1，并且让新找到的成立一个数组，然后继续找。。。
+          return !item.parent ? level : find(navItem.filter(parentItem =>
+          parentItem.id === item.parent)[0], ++level)
+        }
+        navItem.forEach(item => { // 遍历每一项，添加level
+          item.level = find(item)
+        })
+        this.setNavigation(navItem)
+      })
+    },
+
     // 初始化书
     initEpub() { // 初始化渲染电子书
       const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
@@ -147,11 +172,12 @@ export default {
       this.$store.dispatch('setCurrentBook', this.book)
       this.initRendition()
       this.initGesture()
+      this.parseBook()
       this.book.ready.then(() => {
         return this.book.locations.generate(750 * (window.innerWidth / 375) *
         (getFontSize(this.fileName) / 16)).then(locations => {
-          // console.log(locations)
           this.setBookAvailable(true)
+          this.refreshLocation()
         })
       })
     }
