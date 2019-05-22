@@ -7,7 +7,7 @@
           <span class="icon-search"></span>
         </div>
         <input type="text" class="slide-contents-search-input" v-model="searchText"
-        :placeholder="$t('book.searchHint')" @click="showSearchPage" @keyup.enter="search()">
+        :placeholder="$t('book.searchHint')" @click="showSearchPage" @keyup.enter.exact="search()">
       </div>
       <div class="slide-contents-search-cancel" v-if="searchVisible"
       @click="hideSearchPage()">{{$t('book.cancel')}}</div>

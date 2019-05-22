@@ -10,14 +10,14 @@ const book = {
     defaultTheme: 'default', // 默认主题
     bookAvailable: false,
     progress: 0, // 看书进度百分比
-    section: 3,
+    section: 3, // 章节
     isPaginating: true,
     navigation: null,
-    cover: null,
+    cover: null, // 封面
     metadata: null,
     paginate: '',
     pagelist: null,
-    offsetY: 0,
+    offsetY: 0, // 偏移量
     isBookmark: null
   },
   mutations: {

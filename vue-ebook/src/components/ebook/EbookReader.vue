@@ -5,7 +5,9 @@
     <div id="read"></div>
     <!-- 书签蒙板 -->
     <div class="ebook-reader-mask"
-         @click="onMaskClick"></div>
+         @click="onMaskClick"
+         @touchmove="move"
+         @touchend="moveEnd"></div>
   </div>
 </template>
 
@@ -26,10 +28,30 @@ export default {
       })
   },
   methods: {
+    // 下拉
+    move(e) {
+      let offsetY = 0
+      if (this.firstOffsetY) { // 如果存在开始触摸的位置
+        offsetY = e.changedTouches[0].clientY - this.firstOffsetY
+        this.$store.commit('SET_OFFSETY', offsetY) // 保存下拉偏移量
+      } else {
+        this.firstOffsetY = e.changedTouches[0].clientY
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    },
+
+    // 下拉结束
+    moveEnd(e) {
+      this.$store.dispatch('setOffsetY', 0)
+      this.firstOffsetY = null
+    },
+
     // 点击视图
     onMaskClick(e) {
       const offsetX = e.offsetX
-      const width = window.width
+      const width = window.innerWidth
+      console.log(width)
       if (offsetX > 0 && offsetX < width * 0.3) { // 如果点击处偏左
         this.prevPage()
       } else if (offsetX > 0 && offsetX > width * 0.7) { // 如果点击处偏右
@@ -187,7 +209,7 @@ export default {
       this.$store.commit('SET_CURRENT_BOOK', this.book)
       this.$store.dispatch('setCurrentBook', this.book)
       this.initRendition()
-      this.initGesture()
+      // this.initGesture()
       this.parseBook()
       this.book.ready.then(() => {
         return this.book.locations.generate(750 * (window.innerWidth / 375) *

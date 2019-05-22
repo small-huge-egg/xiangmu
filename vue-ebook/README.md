@@ -413,10 +413,10 @@ parseBook() {
 },
 ```
 * 获取图书章节目录(是个数组)：this.book.navigation.toc
+> vue中鼠标的‘enter箭’：`@keyup.enter.exact="search()"`,加exact为了防止同时按别的键也触发enter事件
 ## vuex+mixin
 > 因为每个使用vuex的组件都需要引入{mapGetters} from 'vuex',并且整个计算属性存放state元素，为了代码复用，于是把这些代码抽象出来放在src->utils->mixin.js，然后各个组件只需引入该文件`import {ebookMixin} from '路经'`然后定义`mixins:[ebookMixin]`即可。此外，actions也同样此操作
 > 因为有些样式想要弄成全局样式，利用scss的@mixin定义对象，调用某个对象的时候直接`@include 对象名`。 用@function定义函数，这里调用的时候直接`padding:px2rem(12)`
-> 
 ```
 $ratio: 375 / 10;
 
@@ -502,7 +502,55 @@ this.book.loaded.navigation.then((nav) => { // 获取到全书章节之后
 > 关于书签
 * 功能：在未设置书签时下拉屏幕时显示‘下拉添加书签’，当拉到一定高度时显示‘松开设置为书签’；在已设置书签时下拉屏幕时显示‘下拉删除书签’，当拉到一定高度时显示‘松开删除该书签’
   * 首先监听touchmove事件，获取手势移动的高度
+    * 通过 `@touchmove="move"@touchend="moveEnd"`触发触摸事件，`e.changedTouches[0].clientY`获取触摸位置，声明一个变量，如果变量存在，就表示为第二次触摸的位置，不存在则存储位置
+```javaScript
+// ebookReader
+// 下拉
+    move(e) {
+      let offsetY = 0
+      if (this.firstOffsetY) { // 如果存在开始触摸的位置
+        offsetY = e.changedTouches[0].clientY - this.firstOffsetY
+        this.$store.commit('SET_OFFSETY', offsetY) // 保存下拉偏移量
+      } else {
+        this.firstOffsetY = e.changedTouches[0].clientY
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    },
+
+    // 下拉结束
+    moveEnd(e) {
+      this.$store.dispatch('setOffsetY', 0)
+      this.firstOffsetY = null
+    },
+```
   * 当监听到手势事件时，需要对indexview进行移动,所以要将indexview整个绝对定位，下拉时改变他的top值 
+```javascript
+// index.vue
+watch: {
+  offsetY(v) { // 监听y轴变化 ------------------- 监听vuex里的值，v居然代表值
+    if (v > 0) { // 如果下拉
+      this.move(v)
+    } else if (v === 0) { // 如果松手
+      this.restore()
+    }
+  }
+},
+mounted() {
+  this.startLoopReadTime()
+},
+methods: {
+  restore() {
+    this.$refs.ebook.style.top = 0
+    this.$refs.ebook.style.transition = 'all 0.2s linear'
+    setTimeout(() => { // 为了避免多次下拉时卡顿现象------------原来seTimeout还有这个功能
+      this.$refs.ebook.style.transition = ''
+    }, 200)
+  },
+  move(v) {
+    this.$refs.ebook.style.top = v + 'px'
+  },
+```
   * 在顶部增加一个书签组件，向下时书签组件就会出现，并且该组件需要判断展示了多高，来进行字以及书签图标更改
 # 坑
 >为了其它组件获取这本书从而改变这本书下的一些样式，如字体大小，背景等，于是我在vuex定义了一个currentBook，设置了mutation,getter,action,并在初始化这本书的时候`this.setCurrentBook=this.book`,但是我在其它组件上调用currentBook的时候为空，vuex上也显示currentBook为空，于是找错
