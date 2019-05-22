@@ -1,17 +1,19 @@
 <template>
   <div class="ebook-slide-contents">
+    <!-- 搜索框 -->
     <div class="slide-contents-search-wrapper">
       <div class="slide-contents-search-input-wrapper">
         <div class="slide-contents-search-icon">
           <span class="icon-search"></span>
         </div>
-        <input type="text" class="slide-contents-search-input"
-        :placeholder="$t('book.searchHint')" @click="showSearchPage">
+        <input type="text" class="slide-contents-search-input" v-model="searchText"
+        :placeholder="$t('book.searchHint')" @click="showSearchPage" @keyup.enter="search()">
       </div>
       <div class="slide-contents-search-cancel" v-if="searchVisible"
       @click="hideSearchPage()">{{$t('book.cancel')}}</div>
     </div>
-    <div class="slide-contents-book-wrapper">
+    <!-- 小目录 作者书名封皮 -->
+    <div class="slide-contents-book-wrapper" v-show="!searchVisible">
       <div class="slide-contents-book-img-wrapper">
         <img :src="cover" class="slide-contents-book-img">
       </div>
@@ -31,11 +33,17 @@
         <div class="slide-contents-book-time">{{getReadTime()}}</div>
       </div>
     </div>
-    <scroll class="slide-contents-list" :top="156" :bottom="48" ref="scroll">
+    <!-- 整体目录 -->
+    <scroll class="slide-contents-list" :top="156" :bottom="48" ref="scroll" v-show="!searchVisible">
       <div class="slide-contents-item" v-for="(item, index) in navigation" :key="index" @click="display(item.href)">
         <span class="slide-contents-item-label" :class="{'selected': section === index}" :style="contentItemStyle(item)">{{item.label.trim()}}</span>
         <span class="slide-contents-item-page">{{item.page}}</span>
       </div>
+    </scroll>
+    <!-- 搜索结果 -->
+    <scroll class="slide-search-list" :top="66" :bottom="48" v-show="searchVisible">
+      <div class="slide-search-item" @click="displayNavigation(item.cfi, true)"
+      v-for="(item, index) in searchList" :key="index" v-html="item.excerpt"></div>
     </scroll>
   </div>
 </template>
@@ -47,12 +55,16 @@ export default {
   mixins: [ebookMixin],
   data() {
     return {
-      searchVisible: false
+      searchVisible: false,
+      searchList: null, // 搜索结果
+      searchText: '' // 搜索文本
     }
   },
   methods: {
-    hideSearchPage() {
-      this.searchVisible = false
+    hideSearchPage() { // 点击取消搜索框按钮
+      this.searchVisible = false // 搜索内容隐藏
+      this.searchText = '' // 清空搜索
+      this.searchList = null // 清空搜索框
     },
     showSearchPage() {
       this.searchVisible = true
@@ -61,6 +73,31 @@ export default {
       return {
         marginLeft: `${px2rem(item.level * 15)}rem`
       }
+    },
+    displayNavigation(target, highlight = false) {
+      this.display(target, () => {
+        this.hideTitleAndMenu()
+        if (highlight) {
+          this.currentBook.rendition.annotations.highlight(target)
+        }
+      })
+    },
+    search() { // 搜索全书
+      if (this.searchText && this.searchText.length > 0) {
+        this.doSearch(this.searchText).then(result => {
+          this.searchList = result.map(item => {
+            item.excerpt = item.excerpt.replace(this.searchText, `<span class="content-search-text">${this.searchText}</span>`)
+            return item
+          })
+          // this.$refs.searchInput.blur()
+        })
+      }
+    },
+    doSearch(q) {
+      return Promise.all(
+        this.currentBook.spine.spineItems.map(
+          item => item.load(this.currentBook.load.bind(this.currentBook)).then(item.find.bind(item, q)).finally(item.unload.bind(item)))
+      ).then(results => Promise.resolve([].concat.apply([], results)))
     }
   },
   components: {
@@ -187,6 +224,17 @@ export default {
           font-size: px2rem(10);
           @include right;
         }
+      }
+    }
+    .slide-search-list {
+      width: 100%;
+      padding: 0 px2rem(15);
+      box-sizing: border-box;
+      .slide-search-item {
+        font-size: px2rem(14);
+        line-height: px2rem(16);
+        padding: px2rem(20) 0;
+        box-sizing: border-box;
       }
     }
   }

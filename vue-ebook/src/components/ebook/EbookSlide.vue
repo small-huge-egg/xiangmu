@@ -3,16 +3,23 @@
     <div class="slide-content-wrapper" v-show="menuVisible&&settingVisible===3">
       <transition name="slide-right">
         <div class="content" v-if="settingVisible===3">
-          <div class="content-page-wrapper">
+          <!-- 侧面整体 -->
+          <div class="content-page-wrapper" v-if="bookAvailable">
+            <!-- 组件 -->
             <div class="content-page">
               <component :is="currentTab===1?content:bookmark"></component>
             </div>
+            <!-- 底部书签 目录按钮 -->
             <div class="content-page-tab">
               <div class="content-page-tab-item" :class="{'selected': currentTab ===1}"
               @click="selectTab(1)">{{$t('book.navigation')}}</div>
               <div class="content-page-tab-item" :class="{'selected': currentTab ===2}"
               @click="selectTab(2)">{{$t('book.bookmark')}}</div>
             </div>
+          </div>
+          <!-- 如果书还没有加载成功 -->
+          <div class="content-empty" v-else>
+            <ebook-loading></ebook-loading>
           </div>
         </div>
       </transition>
@@ -23,6 +30,7 @@
 <script>
 import { ebookMixin } from '../../utils/mixin'
 import EbookSlideContents from './EbookSlideContents'
+import EbookLoading from './EbookLoading'
 
 export default {
   mixins: [ebookMixin],
@@ -37,6 +45,9 @@ export default {
     selectTab(index) {
       this.currentTab = index
     }
+  },
+  components: {
+    EbookLoading
   }
 }
 </script>
@@ -76,6 +87,11 @@ export default {
           @include center;
         }
       }
+    }
+    .content-empty {
+      width: 100%;
+      height: 100%;
+      @include center
     }
   }
   .content-bg {

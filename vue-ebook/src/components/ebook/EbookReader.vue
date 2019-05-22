@@ -3,6 +3,9 @@
   <div class="ebook-reader">
     <!-- 创建容器展示电子书 -->
     <div id="read"></div>
+    <!-- 书签蒙板 -->
+    <div class="ebook-reader-mask"
+         @click="onMaskClick"></div>
   </div>
 </template>
 
@@ -23,6 +26,19 @@ export default {
       })
   },
   methods: {
+    // 点击视图
+    onMaskClick(e) {
+      const offsetX = e.offsetX
+      const width = window.width
+      if (offsetX > 0 && offsetX < width * 0.3) { // 如果点击处偏左
+        this.prevPage()
+      } else if (offsetX > 0 && offsetX > width * 0.7) { // 如果点击处偏右
+        this.nextPage()
+      } else {
+        this.toggleTitleAndMenu()
+      }
+    },
+
     // 跳到上一页
     prevPage() {
       if (this.rendition) {
@@ -186,4 +202,19 @@ export default {
 </script>
 
 <style lang="scss" rel="stylesheet/scss" scoped>
+@import "../../assets/styles/global";
+.ebook-reader {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  .ebook-reader-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: transparent;
+    z-index: 150;
+    width: 100%;
+    height: 100%;
+  }
+}
 </style>
