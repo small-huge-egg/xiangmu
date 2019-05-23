@@ -37,11 +37,6 @@ import { ebookMixin } from '../../utils/mixin'
 import { saveProgress } from '../../utils/localStorage'
 export default {
   mixins: [ebookMixin],
-  computed: {
-    getSectionName() {
-      return this.section ? this.navigation[this.section].label : ''
-    }
-  },
   methods: {
     onProgressChange (progress) { // 当input里的值发生改变时
       this.setProgress(progress).then(() => {

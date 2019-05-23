@@ -7,7 +7,11 @@
     <div class="ebook-reader-mask"
          @click="onMaskClick"
          @touchmove="move"
-         @touchend="moveEnd"></div>
+         @touchend="moveEnd"
+         @mousedown.left="onMouseEnter"
+         @mousemove.left="onMouseMove"
+         @mouseup.left="onMouseEnd">
+    </div>
   </div>
 </template>
 
@@ -28,6 +32,45 @@ export default {
       })
   },
   methods: {
+    // 鼠标进入
+    onMouseEnter(e) {
+      this.mouseState = 1 // 表示鼠标掠过，1的时候不执行任何操作
+      this.mouseStartTime = e.timeStamp
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    // 鼠标移动
+    onMouseMove(e) { // 只有在鼠标非掠过的情况下才认为移动
+      if (this.mouseState === 1) {
+        this.mouseState = 2 // 表示鼠标不是掠过
+      } else if (this.mouseState === 2) {
+        let offsetY = 0
+        if (this.firstOffsetY) {
+          offsetY = e.clientY - this.firstOffsetY
+          this.$store.commit('SET_OFFSETY', offsetY)
+        } else {
+          this.firstOffsetY = e.clientY
+        }
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    // 鼠标松开
+    onMouseEnd(e) {
+      if (this.mouseState === 2) {
+        this.$store.dispatch('setOffsetY', 0)
+        this.firstOffsetY = null
+        this.mouseState = 3 // 表示鼠标对屏幕无状态
+      } else {
+        this.mouseState = 4 // 表示鼠标状态是‘点了一下’
+      }
+      const time = this.mouseEndTime - this.mouseStartTime
+      if (time < 100) {
+        this.mouseMove = 1
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    },
     // 下拉
     move(e) {
       let offsetY = 0
@@ -49,9 +92,11 @@ export default {
 
     // 点击视图
     onMaskClick(e) {
+      if (this.mouseState && (this.mouseState === 2 || this.mouseState === 3)) {
+        return
+      }
       const offsetX = e.offsetX
       const width = window.innerWidth
-      console.log(width)
       if (offsetX > 0 && offsetX < width * 0.3) { // 如果点击处偏左
         this.prevPage()
       } else if (offsetX > 0 && offsetX > width * 0.7) { // 如果点击处偏右
@@ -211,6 +256,7 @@ export default {
       this.initRendition()
       // this.initGesture()
       this.parseBook()
+      // 分页算法
       this.book.ready.then(() => {
         return this.book.locations.generate(750 * (window.innerWidth / 375) *
         (getFontSize(this.fileName) / 16)).then(locations => {
@@ -234,7 +280,7 @@ export default {
     top: 0;
     left: 0;
     background: transparent;
-    z-index: 150;
+    // z-index: 150;
     width: 100%;
     height: 100%;
   }

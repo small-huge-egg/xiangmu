@@ -9,7 +9,7 @@
             <div class="content-page">
               <component :is="currentTab===1?content:bookmark"></component>
             </div>
-            <!-- 底部书签 目录按钮 -->
+            <!-- 底部书签、目录按钮 -->
             <div class="content-page-tab">
               <div class="content-page-tab-item" :class="{'selected': currentTab ===1}"
               @click="selectTab(1)">{{$t('book.navigation')}}</div>
@@ -17,7 +17,7 @@
               @click="selectTab(2)">{{$t('book.bookmark')}}</div>
             </div>
           </div>
-          <!-- 如果书还没有加载成功 -->
+          <!-- 如果目录还没有加载成功 -->
           <div class="content-empty" v-else>
             <ebook-loading></ebook-loading>
           </div>
@@ -30,6 +30,7 @@
 <script>
 import { ebookMixin } from '../../utils/mixin'
 import EbookSlideContents from './EbookSlideContents'
+import EbookSlideBookmark from './EbookSlideBookmark'
 import EbookLoading from './EbookLoading'
 
 export default {
@@ -38,7 +39,7 @@ export default {
     return {
       currentTab: 1,
       content: EbookSlideContents,
-      bookmark: null
+      bookmark: EbookSlideBookmark
     }
   },
   methods: {
@@ -80,7 +81,7 @@ export default {
         flex: 0 0 px2rem(48);
         width: 100%;
         height: px2rem(48);
-        background: yellow;
+        background: rgb(175, 171, 189);
         .content-page-tab-item {
           flex: 1;
           font-size: px2rem(12);

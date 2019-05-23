@@ -19,6 +19,7 @@
 import { realPx } from '../../utils/utils'
 import { ebookMixin } from '../../utils/mixin'
 import BookMark from '@/components/ebook/Bookmark'
+import { getBookmark, saveBookmark } from '../../utils/localStorage'
 
 const BLUE = '#346cbc'
 const WHITE = '#fff'
@@ -66,11 +67,47 @@ export default {
       } else if (v === 0) { // 状态4：归位
         this.restore()
       }
+    },
+    isBookmark(isBookmark) { // 监听是否为书签
+      if (isBookmark) {
+        this.color = BLUE
+        this.isFixed = true
+      } else {
+        this.color = WHITE
+        this.isFixed = false
+      }
     }
   },
   methods: {
-    addBookmark() {},
-    removeBokmark() {},
+    addBookmark() { // 添加书签具体内容并把内容保存在本地
+      this.bookmark = getBookmark(this.fileName)
+      if (!this.bookmark) {
+        this.bookmark = []
+      }
+      const currentLocation = this.currentBook.rendition.currentLocation()
+      const cfibase = currentLocation.start.cfi.replace(/!.*/, '').replace('epubcfi(', '')
+      const cfistart = currentLocation.start.cfi.replace(/.*!/, '').replace(/\)/, '')
+      const cfiend = currentLocation.end.cfi.replace(/.*!/, '').replace(/\)/, '')
+      const cfiRange = `epubcfi(${cfibase}!,${cfistart},${cfiend})`
+      this.currentBook.getRange(cfiRange).then(range => {
+        const text = range.toString().replace(/\s\s/g, '')
+        this.bookmark.push({
+          cfi: currentLocation.start.cfi,
+          text: text
+        })
+        saveBookmark(this.fileName, this.bookmark)
+      })
+      console.log(currentLocation, cfibase, cfistart, cfiend, cfiRange)
+    },
+    removeBokmark() { // 删除书签
+      const currentLocation = this.currentBook.rendition.currentLocation()
+      const cfi = currentLocation.start.cfi
+      this.bookmark = getBookmark(this.fileName)
+      if (this.bookmark) { // 删除书签
+        saveBookmark(this.fileName, this.bookmark.filter(item => item.cfi !== cfi))
+        this.setIsBookmark(false) // 清除vuex的书签
+      }
+    },
     restore() { // 状态4： 归位 (注意如果有了过度动画，这里归位要等到动画结束的时候)
       setTimeout(() => {
         this.$refs.bookmark.style.top = `${-this.height}px` // 高度归位
@@ -89,7 +126,7 @@ export default {
         this.text = this.$t('book.pulldownDeleteMark') // 下拉删除书签
         this.color = BLUE
         this.isFixed = true
-      } else {
+      } else { // 如果不是书签
         this.text = this.$t('book.pulldownAddMark')
         this.color = WHITE
         this.isFixed = false

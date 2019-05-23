@@ -1,9 +1,11 @@
 <template>
   <div class="ebook" ref="ebook">
     <ebook-bookmark></ebook-bookmark>
+    <ebook-header></ebook-header>
     <ebook-Title></ebook-Title>
     <!-- <ebook-reader></ebook-reader> -->
     <ebook-Menu></ebook-Menu>
+    <ebook-footer></ebook-footer>
     <router-view/>
   </div>
 </template>
@@ -12,6 +14,8 @@
 import EbookMenu from '../../components/ebook/EbookMenu.vue'
 import EbookTitle from '../../components/ebook/EbookTitle.vue'
 import EbookBookmark from '../../components/ebook/EbookBookmark.vue'
+import EbookHeader from '../../components/ebook/EbookHeader'
+import EbookFooter from '../../components/ebook/EbookFooter'
 import { ebookMixin } from '@/utils/mixin'
 import { getReadTime, saveReadTime } from '@/utils/localStorage'
 
@@ -26,14 +30,14 @@ export default {
     // EbookReader,
     EbookMenu,
     EbookTitle,
-    EbookBookmark
+    EbookBookmark,
+    EbookHeader,
+    EbookFooter
   },
   watch: {
     offsetY(v) { // 监听y轴变化
-    console.log('s')
       if (!this.menuVisible) {
         if (v > 0) { // 如果下拉
-        console.log('s')
           this.move(v)
         } else if (v === 0) { // 如果松手
           this.restore()

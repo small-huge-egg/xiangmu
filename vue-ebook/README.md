@@ -388,6 +388,8 @@ this.rendition.hooks.content.register(contents => {
 * 获取一级目录：this.currentBook.navigation.get(sectionInfo.href)
 * 获取一级目录标题：this.currentBook.navigation.get(sectionInfo.href).label
 * 图书观看百分比：cfi=this.currentBook.locations.cfiFromPercentage(this.progress / 100)
+* 当前页的信息（包括第几页，百分比，开始、结束字符）：  const currentLocation = this.currentBook.rendition.currentLocation()
+* 当前页的第一个字：const cfibase= currentLocation.start.cfi.replace(/!.*/, '')
 * 渲染指定地点的图书：this.currentBook.rendition.display(cfi)
 * 图书所有章节详情：this.currentBook.spine
 * 图书的第几章详情：const sectionInfo = this.currentBook.section(第几章)
@@ -413,6 +415,27 @@ parseBook() {
 },
 ```
 * 获取图书章节目录(是个数组)：this.book.navigation.toc
+* 全局搜索
+```javaScript
+search() { // 搜索全书
+  if (this.searchText && this.searchText.length > 0) {
+    this.doSearch(this.searchText).then(result => {
+      console.log(this.searchList)
+      this.searchList = result.map(item => {
+        item.excerpt = item.excerpt.replace(this.searchText, `<span class="content-search-text">${this.searchText}</span>`)
+        return item
+      })
+      // this.$refs.searchInput.blur()
+    })
+  }
+},
+doSearch(q) { // 该方法由epubjs提供
+  return Promise.all(
+    this.currentBook.spine.spineItems.map(
+      item => item.load(this.currentBook.load.bind(this.currentBook)).then(item.find.bind(item, q)).finally(item.unload.bind(item)))
+  ).then(results => Promise.resolve([].concat.apply([], results)))
+}
+```
 > vue中鼠标的‘enter箭’：`@keyup.enter.exact="search()"`,加exact为了防止同时按别的键也触发enter事件
 ## vuex+mixin
 > 因为每个使用vuex的组件都需要引入{mapGetters} from 'vuex',并且整个计算属性存放state元素，为了代码复用，于是把这些代码抽象出来放在src->utils->mixin.js，然后各个组件只需引入该文件`import {ebookMixin} from '路经'`然后定义`mixins:[ebookMixin]`即可。此外，actions也同样此操作
@@ -469,7 +492,7 @@ export function clearLocalStorage(key) {
 }
 ```
 # 难点：
->做目录时，由于数组里面可能嵌套数组然后再嵌套数组，为了改成一维数组在显示目录时直接将不规则数组传进去就好了。其次这样全部拆成了一级目录，为了分配二级目录好设置css的margin，利用filter和epubjs的id,parent将多级目录形成新数组，并将多级目录的级数通过level计算
+### 做目录时，由于数组里面可能嵌套数组然后再嵌套数组，为了改成一维数组在显示目录时直接将不规则数组传进去就好了。其次这样全部拆成了一级目录，为了分配二级目录好设置css的margin，利用filter和epubjs的id,parent将多级目录形成新数组，并将多级目录的级数通过level计算
 ```javaScript
 // 将多维数组转化为一维数组
 // book.js
@@ -492,14 +515,14 @@ this.book.loaded.navigation.then((nav) => { // 获取到全书章节之后
   this.setNavigation(navItem)
 })
 ```
-> 关于等待目录渲染结束之前的loading:具体参照EbookLoading.vue
+### 关于等待目录渲染结束之前的loading:具体参照EbookLoading.vue
 * 这里用了两个v-for,第一个v-for是指左右两边
 * 第二个v-for包含在第一个里面，表示左边三个线，右边三个线
 * 第二个v-for里面有无色线和白线
 * 通过setInterval，设置动画时长，循环遍历每个无色线，通过add值和end值决定无色线的方向，通过增加、减少无色线与有色线长短造成动画视觉
 * 为了使每个线与上一条线参差不齐的视觉感受，让上一条线无色线为8的时候才让下一条线开始动弹。
   * 注意多条判断决定走向方向以及是否到头以及是否为第一条线
-> 关于书签
+### 关于书签
 * 功能：在未设置书签时下拉屏幕时显示‘下拉添加书签’，当拉到一定高度时显示‘松开设置为书签’；在已设置书签时下拉屏幕时显示‘下拉删除书签’，当拉到一定高度时显示‘松开删除该书签’
   * 首先监听touchmove事件，获取手势移动的高度
     * 通过 `@touchmove="move"@touchend="moveEnd"`触发触摸事件，`e.changedTouches[0].clientY`获取触摸位置，声明一个变量，如果变量存在，就表示为第二次触摸的位置，不存在则存储位置
@@ -552,11 +575,79 @@ methods: {
   },
 ```
   * 在顶部增加一个书签组件，向下时书签组件就会出现，并且该组件需要判断展示了多高，来进行字以及书签图标更改
+    * 这里的复杂点在于下拉时状态的改变，四个状态：下拉初始：下拉到一定位置字不再下拉，零界状态：再下拉到一定位置字和图标位置保持不变（吸顶效果），状态3： 超越零界状态，状态4： 归位 
+```javaScript
+// 下拉初始即状态1：判断是否为书签，如果是书签注意字体以及书签图定位的改变；如果不是则同理
+// 零界状态即状态2：注意吸顶效果（到达某个高度时让这一块开始向上运动（top改变方向与书的方向相反）），还要注意和状态1同样的问题
+// 状态3： 超越零界状态：与状态2同理
+// 状态4： 归位 (注意如果有了过度动画，这里归位要等到动画结束的时候)和存书签的操作
+setTimeout(() => {
+  this.$refs.bookmark.style.top = `${-this.height}px` // 高度归位
+  this.$refs.iconDown.style.transform = 'rotate(0deg)' // 向下箭头归位
+}, 200)
+```
+>鼠标拖动事件————书签
+>因为要记录鼠标进入和离开的位置，所以这里使用mousemove,但只想在点击鼠标的时候才触发下拉事件，于是这里给鼠标状态赋值，如果鼠标状态为1，表示鼠标进入未按下，将鼠标状态改为2。
+```javaScript
+// ebookReader.vue
+<!-- 书签蒙板 -->
+<div class="ebook-reader-mask"
+      @click="onMaskClick"
+      @touchmove="move"
+      @touchend="moveEnd"
+      @mousedown.left="onMouseEnter"
+      @mousemove.left="onMouseMove"
+      @mouseup.left="onMouseEnd">
+</div>
+// 鼠标进入
+onMouseEnter(e) {
+  this.mouseState = 1 // 表示鼠标掠过，1的时候不执行任何操作
+  this.mouseStartTime = e.timeStamp
+  e.preventDefault()
+  e.stopPropagation()
+},
+// 鼠标移动
+onMouseMove(e) { // 只有在鼠标非掠过的情况下才认为移动
+  if (this.mouseState === 1) {
+    this.mouseState = 2 // 表示鼠标不是掠过
+  } else if (this.mouseState === 2) {
+    let offsetY = 0
+    if (this.firstOffsetY) {
+      offsetY = e.clientY - this.firstOffsetY
+      this.$store.commit('SET_OFFSETY', offsetY)
+    } else {
+      this.firstOffsetY = e.clientY
+    }
+  }
+  e.preventDefault()
+  e.stopPropagation()
+},
+// 鼠标松开
+onMouseEnd(e) {
+  if (this.mouseState === 2) {
+    this.$store.dispatch('setOffsetY', 0)
+    this.firstOffsetY = null
+    this.mouseState = 3 // 表示鼠标对屏幕无状态
+  } else {
+    this.mouseState = 4 // 表示鼠标状态是‘点了一下’
+  }
+  const time = e.timeStamp - this.mouseStartTime
+  if (time < 100) {
+    this.mouseState = 4
+  }
+  e.preventDefault()
+  e.stopPropagation()
+},
+```
 # 坑
->为了其它组件获取这本书从而改变这本书下的一些样式，如字体大小，背景等，于是我在vuex定义了一个currentBook，设置了mutation,getter,action,并在初始化这本书的时候`this.setCurrentBook=this.book`,但是我在其它组件上调用currentBook的时候为空，vuex上也显示currentBook为空，于是找错
+### 为了其它组件获取这本书从而改变这本书下的一些样式，如字体大小，背景等，于是我在vuex定义了一个currentBook，设置了mutation,getter,action,并在初始化这本书的时候`this.setCurrentBook=this.book`,但是我在其它组件上调用currentBook的时候为空，vuex上也显示currentBook为空，于是找错
 * 先从store下手，两天反复核对了好几遍没发现store有任何错误
 * 于是console.log了很多setCurrentBook，current,current仍然为空。注意setCurrentBook是我action定义的方法。
 * 想过重新建一个store2,但是由于原本代码封装性太强弄一下太麻烦，其实我误会了，很简单的，我的store文件夹有个book.js专门用来定义state和mutation,actions.js专门用来定义actions,getters.js专门用来定义getter的函数，然后这些文件导出并被index.js文件引用。为了实现代码简单，我又创建了minxin.js用来将ction,getter方法进行封装解构， 往下看
 * 最终还是换了个简单的方法，不整封装了，直接`this.$store.commit('SET_CURRENT_BOOK', this.book),this.$store.dispatch('setCurrentBook', this.book)`就成功了，查看current的值也正确了。
 * 至今不知道为什么封装的就不能改变current值,其他的值完全ok
 * 最重要的是我找错步骤是不对的，当我未从store找到错误时，我应该换个方式改变currenBook的值，即原始方法弄，而不是继续通过封装的方式改变
+### 一直报错：‘Cannot read property '3' of null’
+>这里告诉我报错在某个页面，但一直没有从中找到3的信息，后几天突然想到book.js中的section=3，于是改为0，不再报错
+>报错' Cannot read property 'section' of null"',但是显示错误在另一个页面，vue的浏览器插件能够正常显示section,于是百度发现，应该是逻辑问题
+* 只需添加判断if(this.section){}即可

@@ -72,7 +72,7 @@
       onMouseEnd(e) {
         if (this.mouseMove === 2) {
           this.$store.dispatch('setOffsetY', 0)
-          this.firstOffsetY = 0
+          this.firstOffsetY = null
           this.mouseMove = 3
         }
         this.mouseEndTime = e.timeStamp

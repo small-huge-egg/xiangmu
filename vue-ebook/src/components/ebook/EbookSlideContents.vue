@@ -2,6 +2,7 @@
   <div class="ebook-slide-contents">
     <!-- 搜索框 -->
     <div class="slide-contents-search-wrapper">
+      <!-- 搜索框 -->
       <div class="slide-contents-search-input-wrapper">
         <div class="slide-contents-search-icon">
           <span class="icon-search"></span>
@@ -9,6 +10,7 @@
         <input type="text" class="slide-contents-search-input" v-model="searchText"
         :placeholder="$t('book.searchHint')" @click="showSearchPage" @keyup.enter.exact="search()">
       </div>
+      <!-- 取消按钮 -->
       <div class="slide-contents-search-cancel" v-if="searchVisible"
       @click="hideSearchPage()">{{$t('book.cancel')}}</div>
     </div>
