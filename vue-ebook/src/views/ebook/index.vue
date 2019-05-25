@@ -59,14 +59,14 @@ export default {
     move(v) {
       this.$refs.ebook.style.top = v + 'px'
     },
-    startLoopReadTime() {
+    startLoopReadTime() { // 计算阅读时间
       let readTime = getReadTime(this.fileName)
       if (!readTime) {
         readTime = 0
       }
       this.task = setInterval(() => {
         readTime++
-        if (readTime % 30 === 0) {
+        if (readTime % 30 === 0) { // 每30s保存一次时间
           saveReadTime(this.fileName, readTime)
         }
       }, 1000)
@@ -83,7 +83,7 @@ export default {
 @import "../../assets/styles/global.scss";
 .ebook {
   width: 100%;
-  height: 100;
+  height: 100%;
   position: absolute;
   top: 0;
   left: 0;

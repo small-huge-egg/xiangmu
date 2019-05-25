@@ -127,7 +127,13 @@ $ratio: 375 / 10;
 * reset.scss是全局css默认样式
 ## 引入Vuex
 # 搭建静态资源管理器
+* 更多介绍（https://www.cnblogs.com/salix/p/5987017.html）
 ![](./img/服务器.png)
+>常用命令：
+* nginx -s reload
+  * 重新加载nginx配置
+* nginx -s stop
+  * 关闭静态资源服务
 # 踩坑
 >导入scss文件后随后的scss一直报错,原来是导入后面没加分号
 >关于我对vuex的理解：
@@ -651,3 +657,38 @@ onMouseEnd(e) {
 >这里告诉我报错在某个页面，但一直没有从中找到3的信息，后几天突然想到book.js中的section=3，于是改为0，不再报错
 >报错' Cannot read property 'section' of null"',但是显示错误在另一个页面，vue的浏览器插件能够正常显示section,于是百度发现，应该是逻辑问题
 * 只需添加判断if(this.section){}即可
+# 总结
+1. 建立框架页面index.vue
+2. 通过动态路由动态的向EbookReader.vue组件传入电子书的路径
+* 注意这里直接在路由/ebook下声明`children: [{path:':fileName' }]`,而且为了简化代码，直接让component接收一个匿名的箭头函数，返回`import('vue文件路径')`
+* 获取动态路由的值：this.$route.params
+3. 在EbookReader组建中实现了电子书的解析和渲染
+4. 通过vuecli3.0的环境变量管理和引入环境变量`VUE_APP_RES_URL`
+* 新建.env.development文件，输入`VUE_APP_RES_URL=http://localhost:8082`
+* 于是EbookReader中就可以这样使用
+  const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
+* 其他任意场景需要http://localhost:8082都可直接输入process.env.VUE_APP_RES_URL，无需引入文件
+5. 通过手势操作实现了电子书的手动翻页，主要就是通过epub.js的on方法监听touchstart与touchend,然后利用event.changedTouches[0].clientX监听横轴触摸位置，利用event.timeStamp监听每次触摸的时间
+6. 利用vueI18n实现中英两种语言的配置
+7. 通过mixins机制实现代码的耦合
+8. 主题的实现
+* 阅读器主要通过epub.js实现，利用rendition.themes.select(主题)切换主题
+* 而app界面的主题主要通过动态添加和删除css实现的
+9. 阅读进度
+* 通过html5的range控件实现滑动条
+* 通过ebub.js的locations实现阅读进度和百分比的显示（这里面的保存进度、跳转到指定页面后更改进度以及展示渲染后的页面还是比较复杂的，逻辑必须清晰）。
+* 通过epub.js的section获取指定章节，利用section(第几章).href渲染指定章节
+* 阅读时间的统计
+10. 阅读器的目录
+* 封装了一个flatten函数，运用了es6的新特性将一个树状的数据结构转变为了一个一维数组（...解构与[].concat耦合）
+* 通过find方法判断出了每一个对象所处的层级，实现了多级目录的缩进展示
+* 通过官方提供的方法实现了电子书的全文搜索功能，并实现了搜索关键字的高亮显示以及阅读器的高亮（主要通过epub的annotations.highlight(搜索关键字)实现，里面有将二维数组整成一位数组的算法）
+11. 书签功能
+* 主要通过touchmove和touchend实现手势交互
+* 通过绝对定位改变top值实现了整个页面的下拉效果
+* 通过动态加载transition实现了界面的回弹动画
+* 通过css实现了书签
+* 设计了不同的状态来区分手势（下拉）的不同阶段触发不同的操作
+* 实现添加书签功能，注意如何获取书签文本内容
+* 删除书签功能，通过filter方法
+12. 添加了书签功能对鼠标事件的支持

@@ -235,7 +235,7 @@ export default {
         const navItem = flatten(nav.toc) // 被拆分的一级目录
         function find(item, level = 0) {
           // 当当前项的parent属性为underfind时（代表是一级目录epubjs给的）,level=0
-          // 当当前项的parent存在时，代表不是一级目录。然后寻找满足其他数组的id和item.parent相等的的数组
+          // 当当前项的parent存在时，代表不是一级目录。然后寻找满足其他数组的id和item.parent相等的数组
           // 如果找到了就让当前项的level+1，并且让新找到的成立一个数组，然后继续找。。。
           return !item.parent ? level : find(navItem.filter(parentItem =>
           parentItem.id === item.parent)[0], ++level)
@@ -260,6 +260,29 @@ export default {
       this.book.ready.then(() => {
         return this.book.locations.generate(750 * (window.innerWidth / 375) *
         (getFontSize(this.fileName) / 16)).then(locations => {
+          this.navigation.forEach(nav => { // 给每一章添加pageList数组
+            nav.pageList = []
+          })
+          locations.forEach(item => {
+            const loc = item.match(/\[(.*)\]!/)[1]
+            this.navigation.forEach(nav => {
+              if (nav.href) {
+                const href = nav.href.match(/^(.*)\.html$/)[1]
+                if (href === loc) {
+                  nav.pageList.push(item)
+                }
+              }
+            })
+            let currentPage = 1
+            this.navigation.forEach((nav, index) => {
+              if (index === 0) {
+                nav.page = 1
+              } else {
+                nav.page = currentPage
+              }
+              currentPage += nav.pageList.length + 1
+            })
+          })
           this.setBookAvailable(true)
           this.refreshLocation()
         })

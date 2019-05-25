@@ -11,10 +11,10 @@ const messages = {
 }
 
 let locale = getLocale()
-  if (!locale) {
-    locale = 'cn'
-    saveLocale(locale)
-  }
+if (!locale) {
+  locale = 'cn'
+  saveLocale(locale)
+}
 
 const i18n = new VueI18n({
   locale,

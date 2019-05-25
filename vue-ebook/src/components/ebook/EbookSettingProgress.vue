@@ -57,21 +57,21 @@ export default {
     updateProgressBg() { // 更新背景
       this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`
     },
-    preSection() {
+    preSection() { // 上一章
       if (this.section > 0 && this.bookAvailable) {
         this.setSection(this.section - 1).then(() => {
           this.displaySection()
         })
       }
     },
-    nextSection() {
+    nextSection() { // 下一章
       if (this.section < this.currentBook.spine.length - 1 && this.bookAvailable) {
         this.setSection(this.section + 1).then(() => {
           this.displaySection()
         })
       }
     },
-    displaySection () {
+    displaySection () { // 展示章节
       const sectionInfo = this.currentBook.section(this.section)
       if (sectionInfo && sectionInfo.href) {
         this.display(sectionInfo.href)

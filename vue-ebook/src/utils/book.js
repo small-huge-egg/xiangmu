@@ -103,7 +103,7 @@ export function getReadTimeByMinute(fileName) {
   if (!readTime) {
     return 0
   } else {
-    return Math.ceil(readTime / 60)
+    return Math.ceil(readTime / 60) // 将时间按分钟统计
   }
 }
 
