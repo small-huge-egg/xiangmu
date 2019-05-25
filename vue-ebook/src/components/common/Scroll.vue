@@ -23,7 +23,7 @@
       }
     },
     methods: {
-      handleScroll(e) {
+      handleScroll(e) { // y轴滚动距离
         const offsetY = e.target.scrollTop || window.pageYOffset || document.body.scrollTop
         this.$emit('onScroll', offsetY)
       },

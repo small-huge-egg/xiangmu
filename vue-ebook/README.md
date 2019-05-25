@@ -497,7 +497,40 @@ export function clearLocalStorage(key) {
   return localStorage.clear()
 }
 ```
+# 书城首页
+
+
+
+
+
+
+
+# 搜索页
+>向下滑动屏幕时的交互细节分析：
+1. 标题和推荐图标向下渐隐
+2. 搜索框向上移动到标题位置
+3. 搜索框逐渐变窄以适应屏幕（难点）
+4. 返回按钮向下居中
+5. 标题下方产生阴影
+
+# 列表页
+
+
+
+
+
+
+# 详情页
+
+
+
+
+
+
+
 # 难点：
+![]('./img/难点1.png')
+![]('./img/难点2.png')
 ### 做目录时，由于数组里面可能嵌套数组然后再嵌套数组，为了改成一维数组在显示目录时直接将不规则数组传进去就好了。其次这样全部拆成了一级目录，为了分配二级目录好设置css的margin，利用filter和epubjs的id,parent将多级目录形成新数组，并将多级目录的级数通过level计算
 ```javaScript
 // 将多维数组转化为一维数组
@@ -521,6 +554,11 @@ this.book.loaded.navigation.then((nav) => { // 获取到全书章节之后
   this.setNavigation(navItem)
 })
 ```
+
+
+
+
+
 ### 关于等待目录渲染结束之前的loading:具体参照EbookLoading.vue
 * 这里用了两个v-for,第一个v-for是指左右两边
 * 第二个v-for包含在第一个里面，表示左边三个线，右边三个线
@@ -528,6 +566,11 @@ this.book.loaded.navigation.then((nav) => { // 获取到全书章节之后
 * 通过setInterval，设置动画时长，循环遍历每个无色线，通过add值和end值决定无色线的方向，通过增加、减少无色线与有色线长短造成动画视觉
 * 为了使每个线与上一条线参差不齐的视觉感受，让上一条线无色线为8的时候才让下一条线开始动弹。
   * 注意多条判断决定走向方向以及是否到头以及是否为第一条线
+
+
+
+
+
 ### 关于书签
 * 功能：在未设置书签时下拉屏幕时显示‘下拉添加书签’，当拉到一定高度时显示‘松开设置为书签’；在已设置书签时下拉屏幕时显示‘下拉删除书签’，当拉到一定高度时显示‘松开删除该书签’
   * 首先监听touchmove事件，获取手势移动的高度
@@ -645,6 +688,11 @@ onMouseEnd(e) {
   e.stopPropagation()
 },
 ```
+
+
+
+
+
 # 坑
 ### 为了其它组件获取这本书从而改变这本书下的一些样式，如字体大小，背景等，于是我在vuex定义了一个currentBook，设置了mutation,getter,action,并在初始化这本书的时候`this.setCurrentBook=this.book`,但是我在其它组件上调用currentBook的时候为空，vuex上也显示currentBook为空，于是找错
 * 先从store下手，两天反复核对了好几遍没发现store有任何错误
