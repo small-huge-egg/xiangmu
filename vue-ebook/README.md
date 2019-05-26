@@ -126,14 +126,15 @@ $ratio: 375 / 10;
 ```
 * reset.scss是全局css默认样式
 ## 引入Vuex
-# 搭建静态资源管理器
-* 更多介绍（https://www.cnblogs.com/salix/p/5987017.html）
+# 搭建静态资源https://www.cnblogs.com/salix/p/5987017.html管理器
+* 更多介绍（）
 ![](./img/服务器.png)
 >常用命令：
 * nginx -s reload
   * 重新加载nginx配置
 * nginx -s stop
   * 关闭静态资源服务
+* 在niginx目录下 start nginx ，开启静态服务，访问80端口
 # 踩坑
 >导入scss文件后随后的scss一直报错,原来是导入后面没加分号
 >关于我对vuex的理解：
@@ -508,10 +509,26 @@ export function clearLocalStorage(key) {
 # 搜索页
 >向下滑动屏幕时的交互细节分析：
 1. 标题和推荐图标向下渐隐
+* 设置show方法，然后加个动画
 2. 搜索框向上移动到标题位置
+* 添加class，设置top=0,再加个动画transition: top .2s linear
 3. 搜索框逐渐变窄以适应屏幕（难点）
+* 将搜索框设置为flex布局，同时添加一个占位div,在开始时占位div的flex为000，后来变成 0 0 返回图标的宽度
 4. 返回按钮向下居中
+* 添加class，设置高度为52即可，然后加个transition: heigh .2s linear
 5. 标题下方产生阴影
+* 很多地方需要添加阴影，根据场景需求，注意改变dom需要在$nextTick这个回调函数中进行，以及父组件调用子组件中的方法： this.$refs.hotSearch.reset()，直接打点调用。子组件不需要做什么
+
+>推荐的交互细节分析：
+1. 弹出卡片
+2. 卡片翻转动画（难点）
+3. 烟花动画（难点）
+4. 弹出推荐图书
+
+
+
+
+
 
 # 列表页
 

@@ -1,5 +1,6 @@
 <template>
-  <div class="scroll-wrapper" :class="{'no-scroll': ifNoScroll}" @scroll.passive="handleScroll" ref="scrollWrapper">
+  <div class="scroll-wrapper" :class="{'no-scroll': ifNoScroll}"
+  @scroll.passive="handleScroll" ref="scrollWrapper">
     <slot></slot>
   </div>
 </template>
@@ -30,9 +31,11 @@
       scrollTo(x, y) {
         this.$refs.scrollWrapper.scrollTo(x, y)
       },
-      refresh() {
+      refresh() { // 更新滚动
         if (this.$refs.scrollWrapper) {
+          // 滚动条高度
           this.$refs.scrollWrapper.style.height = window.innerHeight - realPx(this.top) - realPx(this.bottom) + 'px'
+          // 监听滚动，将滚动距离传给父组件
           this.$refs.scrollWrapper.addEventListener('scroll', this.handleScroll)
         }
       }

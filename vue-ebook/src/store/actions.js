@@ -58,6 +58,12 @@ const actions = {
   },
   setSpeakingIconBottom({ commit }, speakingIconBottom) {
     commit('SET_SPEAKING_ICON_BOTTOM', speakingIconBottom)
+  },
+  setHotSearchOffsetY({ commit }, hotSearchOffsetY) {
+    commit('SET_HOT_SEARCH_OFFSETY', hotSearchOffsetY)
+  },
+  setFlapCardVisible({ commit }, flapCardVisible) {
+    commit('SET_FLAP_CARD_VISIBLE', flapCardVisible)
   }
 }
 export default actions
