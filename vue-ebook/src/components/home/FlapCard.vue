@@ -40,6 +40,9 @@ export default {
       runPointAnimation: false // 烟花动画默认不显示
     }
   },
+  props: {
+    // random
+  },
   created() {
     this.pointList = []
     for (let i = 0; i < 18; i++) {

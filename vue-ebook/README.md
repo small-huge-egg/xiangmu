@@ -565,11 +565,10 @@ this.flapCardList.forEach((item, index) => {
 > mock.js
 * 源码：(https://github.com/nuysoft/Mock)
 * 安装：`cnpm i mockjs --D`
-* http请求axios安装：`cnpm i axios --save`
 * 替换原生的XMLHttpRequest,使用简便
 * 丰富的数据类型
 * 无法支持blob类型，无法模拟下载
-
+* 引入：`import Mock from 'mockjs'`
 
 
 # 列表页

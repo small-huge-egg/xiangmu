@@ -1,33 +1,10 @@
 <template>
   <div class="store-home">
+    <!-- 搜索栏 -->
     <search-bar></search-bar>
-    <flap-card></flap-card>
+    <!-- 弹出的推荐 -->
+    <flap-card :data="random"></flap-card>
     <scroll :top="scrollTop" @onScroll="onScroll" ref="scroll">
-      <div>4545</div>
-      <div>45454</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
-      <div>454545</div>
     </scroll>
   </div>
 </template>
@@ -37,11 +14,13 @@
   import Scroll from '../../components/common/Scroll'
   import FlapCard from '../../components/home/FlapCard'
   import { storeHomeMixin } from '@/utils/mixin'
+  import { home } from '../../api/store'
   export default {
     mixins: [storeHomeMixin],
     data() {
       return {
-        scrollTop: 94
+        scrollTop: 94,
+        random: null
       }
     },
     components: {
@@ -59,6 +38,15 @@
         }
         this.$refs.scroll.refresh()
       }
+    },
+    mounted() {
+      home().then(response => { // 随机推荐一本书
+        if (response && response.status === 200) {
+          const data = response.data
+          const randomIndex = Math.floor(Math.random() * data.random.length)
+          this.random = data.random[randomIndex]
+        }
+      })
     }
   }
 </script>
