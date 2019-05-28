@@ -519,14 +519,56 @@ export function clearLocalStorage(key) {
 5. 标题下方产生阴影
 * 很多地方需要添加阴影，根据场景需求，注意改变dom需要在$nextTick这个回调函数中进行，以及父组件调用子组件中的方法： this.$refs.hotSearch.reset()，直接打点调用。子组件不需要做什么
 
+
 >推荐的交互细节分析：
 1. 弹出卡片
 2. 卡片翻转动画（难点）
+* 注意卡片的起始，卡片重复的点，卡片重置
+* 分析由于半页半页翻转，于是把图片拆分成两个图片，利用flex布局实现各占一半，利用`background-position：center right`实现背景图片垂直居中，水平居右，右边半图同理，还有no-repeat设置
+* 分析是右边的旋转，但是背面是第二张图，所以利用`backface-visibility: hidden`隐藏正面旋转的背面，但是这样仅仅隐藏了前一张的背面，要使他的背面呈现第二张图，那么就要初始化第二张图即旋转个180°，这样她俩就贴着了
+* 于是动起来的时候让前一页的rotateDegree+10，颜色减5,后一页的度数减10，颜色加5，然后他俩都旋转了90°后，正式换图片，使后一张的Index+2
+* 这里规定了rotate方法专门用来获取dom,使其旋转指定角度和旋转时颜色变化；规定了flapCardRotate方法专门用来规定如何变化；规定了startFlapCardAnimation方法正式添加定时器实现动画
+* 当第一张图旋转180°后并且后一张图旋转了90°后，进入下一张图片，因此创建next方法，首先把之前的前一张和后一张图片设置旋转（旋转度数归为0，颜色也变为最初），然后使前一张++，后一张++。为了实现循环，设置当前一张>=len,就让前一张Index=0,back同理。
+  * 注意这里虽然图片有所切换，但index值要++，不然看不见，于是得一算法：
+```javaScript
+// 动态改变z-index
+this.flapCardList.forEach((item, index) => {
+  item.zIndex = 100 - ((index - this.front + len) % len)
+})
+```
+* 为了实现关闭动画弹窗后动画至于初始状态，因此规定reset方法重置旋转玩家，重置每张图片背景色，重置每张图旋转角度，重置zindex
+
 3. 烟花动画（难点）
+* scss知识点：
+  * scss的属性用$名字声明，方法用@mixin 方法名声明
+  * 获取$moves数组的第$index项：nth($moves, $index)
+  * 动画名字设置要用#{$动画名}包裹
+  * for循环数组是 @for $i from 1 to 某数组指定长度
+* 烟花展示新建一个flap.scss文件，设置一个对象数组$moves存放18个小球的颜色、大小、开始位置横纵坐标、结束横纵坐标位置。然后设置一个方法，接收一个$index参数给$index项设置相应的item（从$moves中取得第$index项）$item: nth($moves, $index);，添加动画必备的`animation: #{$keyframesName} $animationTime $animationType $animationIterator;`。这样就实现直接通过遍历数组中的x,y坐标信息使小球绽放在不同位置后消失
+* 卡片隐藏：一定时间后关闭烟花动画直接采用将class置为false，但是要想隐藏整个动画dom,这里采用将整体opacity=0,transform: scale(0).但是这样会使动画弹出来后就被立即隐藏了。于是添加annimation: .3s ease-in both.注意这个both属性会使弹出动画停留在最后一刻，即100%的时候。
+* 注意异步函数的调用，有效控制各个动画出现时间
+* 关于scss的for循环代码：
+```css
+.point {
+  border-radius: 50%;
+  @include absCenter;
+  &.animation {
+    @for $i from 1 to length($moves) { // scss的循环，从1到$moves的长度
+      &:nth-child(#{$i}) { // 给每个元素设置flapCaed.scss的move($i)方法
+        @include move($i);
+      }
+    }
+  }
+}
+```
 4. 弹出推荐图书
-
-
-
+> mock.js
+* 源码：(https://github.com/nuysoft/Mock)
+* 安装：`cnpm i mockjs --D`
+* http请求axios安装：`cnpm i axios --save`
+* 替换原生的XMLHttpRequest,使用简便
+* 丰富的数据类型
+* 无法支持blob类型，无法模拟下载
 
 
 
