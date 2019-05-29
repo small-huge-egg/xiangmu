@@ -1,9 +1,11 @@
 <template>
   <div class="flap-card-wrapper" v-show="flapCardVisible">
-    <div class="flap-card-bg" :class="{'animation': runFlapCardAnimation}">
+    <!-- 卡片和烟花 -->
+    <div class="flap-card-bg" :class="{'animation': runFlapCardAnimation}"
+    v-show="runFlapCardAnimation">
       <!-- 卡片们 -->
-      <div class="flap-card" v-for="(item, index) in flapCardList" :key="index"
-        :style="{zIndex: item.zIndex}">
+      <div class="flap-card" v-for="(item, index) in flapCardList"
+      :key="index" :style="{zIndex: item.zIndex}">
         <!-- 卡片圆圈 -->
         <div class="flap-card-circle">
           <div class="flap-card-semi-circle flap-card-semi-circle-left"
@@ -18,6 +20,20 @@
           :class="{'animation': runPointAnimation}"></div>
       </div>
     </div>
+    <!-- 推荐书籍 -->
+    <div class="book-card" :class="{'animation': runBookCardAnimation}" v-show="runBookCardAnimation">
+      <div class="book-card-wrapper">
+        <div class="img-wrapper">
+          <img class="img" :src="data.cover">
+        </div>
+        <div class="content-wrapper">
+          <div class="title">{{data.title}}</div>
+          <div class="author sub-title-medium">{{data.author}}</div>
+          <div class="category">{{categoryText()}}</div>
+        </div>
+        <div class="read-btn" @click.stop="showBookDetail(data)">{{$t('home.readNow')}}</div>
+      </div>
+    </div>
     <!-- 关闭按钮 -->
     <div class="close-btn-wrapper" @click="close">
       <span class="icon-close icon"></span>
@@ -25,8 +41,8 @@
   </div>
 </template>
 <script>
- import { storeHomeMixin } from '@/utils/mixin'
- import { flapCardList } from '@/utils/store'
+import { storeHomeMixin } from '@/utils/mixin'
+import { flapCardList, categoryText } from '@/utils/store'
 export default {
   mixins: [storeHomeMixin],
   data() {
@@ -37,11 +53,12 @@ export default {
       intervalTime: 25,
       runFlapCardAnimation: false, // 管理烟花
       pointList: null, // 烟花小球数组
-      runPointAnimation: false // 烟花动画默认不显示
+      runPointAnimation: false, // 烟花动画默认不显示
+      runBookCardAnimation: false // 推荐图书动画
     }
   },
   props: {
-    // random
+    data: Object
   },
   created() {
     this.pointList = []
@@ -68,10 +85,14 @@ export default {
     runAnimation () { // 展示推荐所需执行的方法
       this.runFlapCardAnimation = true
       // 异步：三秒后执行反转动画和烟花，为了使放大展示完
-      setTimeout(() => {
+      this.timeout = setTimeout(() => {
         this.startFlapCardAnimation() // 开始旋转动画
         this.startRunPointAnimation()
       }, 300)
+      this.timeout2 = setTimeout(() => { // 2.5秒后取消反转动画
+        this.stopAnimation()
+        this.runBookCardAnimation = true
+      }, 2500)
     },
     close() {
       this.setFlapCardVisible(false)
@@ -156,16 +177,18 @@ export default {
       this.task = setInterval(() => { // 定时翻转
         this.flapCardRotate()
       }, this.intervalTime)
-      setTimeout(() => { // 2.5秒后取消显示反转动画
-        this.stopAnimation()
-      }, 2500)
     },
 
     // 停止一切动画
     stopAnimation() {
-      this.runFlapCardAnimation = false
       if (this.task) {
         clearInterval(this.task)
+      }
+      if (this.timeout) {
+        clearTimeout(this.timeout)
+      }
+      if (this.timeout2) {
+        clearTimeout(this.timeout2)
       }
       this.reset()
     },
@@ -179,6 +202,20 @@ export default {
         this.rotate(index, 'front')
         this.rotate(index, 'back')
       })
+      this.runBookCardAnimation = false // 推荐图书动画关闭
+      this.runFlapCardAnimation = false // 反转卡片动画关闭
+      this.runPointAnimation = false // 烟花动画关闭
+    },
+    categoryText() {
+      if (this.data) {
+        return categoryText(this.data.category, this)
+      } else {
+        return ''
+      }
+    },
+    // 点击立即阅读
+    showBookDetail(book) {
+
     }
   }
 }
@@ -266,6 +303,78 @@ export default {
               }
             }
           }
+        }
+      }
+    }
+    .book-card {
+      position: relative;
+      width: 65%;
+      // height: 70%;
+      box-sizing: border-box;
+      border-radius: px2rem(15);
+      background: white;
+      &.animation {
+        animation: scale .3s ease-in both;
+        @keyframes scale {
+          0% {
+            transform: scale(0);
+            opacity: 0;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      }
+      .book-card-wrapper {
+        width: 100%;
+        height: 100%;
+        margin-bottom: px2rem(30);
+        @include columnTop;
+        .img-wrapper {
+          width: 100%;
+          margin-top: px2rem(20);
+          @include center;
+          .img {
+            width: px2rem(90);
+            height: px2rem(130);
+          }
+        }
+        .content-wrapper {
+          padding: 0 px2rem(20);
+          margin-top: px2rem(20);
+          .title {
+            color: #333;
+            font-weight: bold;
+            font-size: px2rem(18);
+            line-height: px2rem(20);
+            max-height: px2rem(40);
+            text-align: center;
+            @include ellipsis2(2)
+          }
+          .author {
+            margin-top: px2rem(10);
+            text-align: center;
+          }
+          .category {
+            color: #999;
+            font-size: px2rem(14);
+            margin-top: px2rem(10);
+            text-align: center;
+          }
+        }
+        .read-btn {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          z-index: 1100;
+          width: 100%;
+          border-radius: 0 0 px2rem(15) px2rem(15);
+          padding: px2rem(15) 0;
+          text-align: center;
+          color: white;
+          font-size: px2rem(14);
+          background: $color-blue;
         }
       }
     }

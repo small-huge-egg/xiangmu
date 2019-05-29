@@ -64,6 +64,18 @@ const actions = {
   },
   setFlapCardVisible({ commit }, flapCardVisible) {
     commit('SET_FLAP_CARD_VISIBLE', flapCardVisible)
+  },
+  setIsEditMode({ commit }, isEditMode) {
+    commit('SET_IS_EDIT_MODE', isEditMode)
+  },
+  setShelfList({ commit }, list) {
+    commit('SET_SHELF_LIST', list)
+  },
+  setShelfSelected({ commit }, selected) {
+    commit('SET_SHELF_SELECTED', selected)
+  },
+  setShelfTitleVisible({ commit }, visible) {
+    commit('SET__SHELF_TITLE_VISIBLE', visible)
   }
 }
 export default actions

@@ -572,8 +572,15 @@ this.flapCardList.forEach((item, index) => {
 
 
 # 列表页
-
-
+>背景图片自适应（使完全展示）
+```css
+.banner-img {
+  width: 100%;
+  height: 140px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+```
 
 
 

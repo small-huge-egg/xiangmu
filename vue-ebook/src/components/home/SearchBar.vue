@@ -27,7 +27,8 @@
                   class="input"
                   :placeholder="$t('home.hint')"
                   v-model="searchText"
-                  @click="showHotSearch">
+                  @click="showHotSearch"
+                  @key.13.exact="search">
         </div>
       </div>
     </div>
@@ -70,6 +71,14 @@
       }
     },
     methods: {
+      search() { // 点击确定搜索
+        this.$router.push({
+          path: '/store/list',
+          query: {
+            keyword: this.searchText
+          }
+        })
+      },
       showFlapCard() { // 点击推荐图标
         this.setFlapCardVisible(true)
       },
@@ -79,7 +88,11 @@
         } else {
           this.hideShadow()
         }
-        this.hideHotSearch()
+        if (this.hotSearchVisible) {
+          this.hideHotSearch()
+        } else {
+          this.$router.push('/store/shelf')
+        }
       },
       hideTitle() {
         this.titleVisible = false
