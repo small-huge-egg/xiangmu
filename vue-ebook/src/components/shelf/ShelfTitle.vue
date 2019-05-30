@@ -1,7 +1,7 @@
 <template>
   <!-- 书架头 -->
   <transition name="fade">
-    <div class="shelf-title" v-show="shelfTitleVisible">
+    <div class="shelf-title" :class="{'hide-shadow': ifHideShadow}" v-show="shelfTitleVisible">
       <!-- 书架 -->
       <div class="shelf-title-text-wrapper">
         <span class="shelf-title-text">{{$t('shelf.title')}}</span>
@@ -24,6 +24,16 @@ export default {
   mixins: [storeShelfMixin],
   data() {
     return {
+      ifHideShadow: true // 是否隐藏阴影
+    }
+  },
+  watch: {
+    offsetY(offsetY) {
+      if (offsetY > 0) {
+        this.ifHideShadow = false
+      } else {
+        this.ifHideShadow = true
+      }
     }
   },
   computed: {
@@ -51,7 +61,12 @@ export default {
     position: relative;
     width: 100%;
     height: px2rem(42);
+    z-index: 130;
     background: rgb(255, 255, 255);
+    box-shadow: 0 px2rem(2) px2rem(2) 0 rgba(0, 0, 0, .1);
+    &.hide-shadow {
+      box-shadow: none;
+    }
     .shelf-title-text-wrapper {
       position: absolute;
       top: 0;
