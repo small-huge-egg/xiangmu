@@ -8,19 +8,22 @@
             :top="42"
             @onScroll="onScroll"
             ref="scroll">
-      <featured :data="value" :titleText="titleText ? titleText : getCategoryText(key)" :btnText="''" v-for="(value, key, index) in list"
+      <featured :data="value"
+                :titleText="titleText ? titleText : getCategoryText(key)"
+                :btnText="''"
+                v-for="(value, key, index) in list"
                 :key="index"></featured>
     </scroll>
   </div>
 </template>
 
 <script>
-  import DetailTitle from '@/components/detail/detaiTitle'
-  import Scroll from '@/components/common/Scroll'
-  import Featured from '@/components/home/Featured'
-  import { realPx } from '@/utils/utils'
-  import { list } from '@/api/store'
-  import { categoryList, categoryText } from '@/utils/store'
+  import DetailTitle from '../../components/detail/detaiTitle'
+  import Scroll from '../../components/common/Scroll'
+  import Featured from '../../components/home/Featured'
+  import { realPx } from '../../utils/utils'
+  import { list } from '../../api/store'
+  import { categoryList, categoryText } from '../../utils/store'
 
   export default {
     components: {
@@ -68,6 +71,7 @@
         list().then(response => {
           this.list = response.data.data
           this.total = response.data.total
+          console.log(this.list)
           const category = this.$route.query.category
           const keyword = this.$route.query.keyword
           if (category) {

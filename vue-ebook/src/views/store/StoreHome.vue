@@ -76,13 +76,13 @@
           const data = response.data
           const randomIndex = Math.floor(Math.random() * data.random.length)
           this.random = data.random[randomIndex]
-        console.log(data)
           this.banner = data.banner
           this.guessYouLike = data.guessYouLike
           this.recommend = data.recommend
           this.featured = data.featured
           this.categoryList = data.categoryList
           this.categories = data.categories
+          console.log(data)
         }
       })
     }

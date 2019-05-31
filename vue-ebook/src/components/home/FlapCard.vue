@@ -3,7 +3,7 @@
     <!-- 卡片和烟花 -->
     <div class="flap-card-bg" :class="{'animation': runFlapCardAnimation}"
     v-show="runFlapCardAnimation">
-      <!-- 卡片们 -->
+      <!-- 卡片们cover -->
       <div class="flap-card" v-for="(item, index) in flapCardList"
       :key="index" :style="{zIndex: item.zIndex}">
         <!-- 卡片圆圈 -->

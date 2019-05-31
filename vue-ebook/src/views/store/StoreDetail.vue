@@ -74,15 +74,12 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import DetailTitle from '@/components/detail/detaiTitle'
-  import BookInfo from '@/components/detail/bookInfo'
-  import Scroll from '@/components/common/Scroll'
-  import Toast from '@/components/common/Toast'
-  // import { removeFromBookShelf, addToShelf } from '@/utils/book'
-  import { flatList, detail } from '@/api/store'
-  import { px2rem, realPx } from '@/utils/utils'
-  // import { getLocalForage } from '@/utils/localForage'
-  import { getLocalStorage } from '@/utils/localStorage'
+  import DetailTitle from '../../components/detail/detaiTitle'
+  import BookInfo from '../../components/detail/bookInfo'
+  import Scroll from '../../components/common/Scroll'
+  import Toast from '../../components/common/Toast'
+  import { detail } from '../../api/store'
+  import { px2rem, realPx } from '../../utils/utils'
   import Epub from 'epubjs'
 
   global.ePub = Epub
@@ -138,7 +135,6 @@
     },
     data() {
       return {
-        bookShelf: null,
         bookItem: null,
         book: null,
         metadata: null,
@@ -157,74 +153,21 @@
     },
     methods: {
       addOrRemoveShelf() {
-        if (this.inBookShelf) {
-          removeFromBookShelf(this.bookItem)
-        } else {
-          addToShelf(this.bookItem)
-        }
-        this.bookShelf = getLocalStorage('bookShelf')
       },
       showToast(text) {
         this.toastText = text
         this.$refs.toast.show()
       },
       readBook() {
-        getLocalForage(this.bookItem.fileName, (err, value) => {
-          if (!err && value instanceof Blob) {
-            this.$router.push({
-              path: `/ebook/${this.bookItem.fileName}`
-            })
-          } else {
-            // this.showToast(this.$t('shelf.downloadFirst'))
-            this.$router.push({
-              path: `/ebook/${this.bookItem.fileName}`,
-              query: {
-                opf: this.opf
-              }
-            })
-          }
+        this.$router.push({
+          path: `/ebook/${this.categoryText}|${this.fileName}`
         })
       },
       trialListening() {
-        getLocalForage(this.bookItem.fileName, (err, value) => {
-          if (!err && value instanceof Blob) {
-            this.$router.push({
-              path: '/book-store/book-speaking',
-              query: {
-                fileName: this.bookItem.fileName
-              }
-            })
-          } else {
-            // this.showToast(this.$t('shelf.downloadFirst'))
-            this.$router.push({
-              path: '/book-store/book-speaking',
-              query: {
-                fileName: this.bookItem.fileName,
-                opf: this.opf
-              }
-            })
-          }
-        })
       },
       read(item) {
-        getLocalForage(this.bookItem.fileName, (err, value) => {
-          if (!err && value instanceof Blob) {
-            this.$router.push({
-              path: `/ebook/${this.bookItem.fileName}`,
-              query: {
-                navigation: item.href
-              }
-            })
-          } else {
-            // this.showToast(this.$t('shelf.downloadFirst'))
-            this.$router.push({
-              path: `/ebook/${this.bookItem.fileName}`,
-              query: {
-                navigation: item.href,
-                opf: this.opf
-              }
-            })
-          }
+        this.$router.push({
+          path: `/ebook/${this.categoryText}|${this.fileName}`
         })
       },
       itemStyle(item) {
@@ -243,35 +186,21 @@
         })
         return arr
       },
-      initBook() {
-        if (this.bookItem) {
-          getLocalForage(this.bookItem.fileName, (err, blob) => {
-            if (err) {
-              this.downloadBook()
-            } else {
-              if (blob) {
-                this.parseBook(blob)
-              } else {
-                this.downloadBook()
-              }
-            }
-          })
-        }
-      },
       downloadBook() {
         const opf = `${process.env.VUE_APP_EPUB_URL}/${this.bookItem.categoryText}/${this.bookItem.fileName}/OEBPS/package.opf`
         this.parseBook(opf)
       },
-      parseBook(blob) {
-        this.book = new Epub(blob)
+      parseBook(url) {
+        this.book = new Epub(url)
         this.book.loaded.metadata.then(metadata => {
           this.metadata = metadata
         })
         this.book.loaded.navigation.then(nav => {
           this.navigation = nav
           if (this.navigation.toc && this.navigation.toc.length > 1) {
-            this.display(this.navigation.toc[1].href)
-              .then(section => {
+            const candisplay = this.display(this.navigation.toc[1].href)
+            if (candisplay) {
+              candisplay.then(section => {
                 if (this.$refs.scroll) {
                   this.$refs.scroll.refresh()
                 }
@@ -280,44 +209,36 @@
                 const text = section.output.replace(reg, '').replace(/\s\s/g, '')
                 this.description = text
               })
-          }
-        })
-      },
-      findBookFromList(fileName) {
-        flatList().then(response => {
-          if (response.status === 200) {
-            const bookList = response.data.data.filter(item => item.fileName === fileName)
-            if (bookList && bookList.length > 0) {
-              this.bookItem = bookList[0]
-              console.log(this.bookItem)
-              this.initBook()
             }
           }
         })
       },
       init() {
-        const fileName = this.$route.query.fileName
+        this.fileName = this.$route.query.fileName
         this.categoryText = this.$route.query.category
-        if (fileName) {
+        console.log('45')
+        if (this.fileName) {
           detail({
-            fileName: fileName
+            fileName: this.fileName
           }).then(response => {
+                                  console.log('45')
             if (response.status === 200 && response.data.error_code === 0 && response.data.data) {
               const data = response.data.data
               this.bookItem = data
+              console.log(response.data)
               this.cover = this.bookItem.cover
+              console.log(this.cover)
               let rootFile = data.rootFile
               if (rootFile.startsWith('/')) {
                 rootFile = rootFile.substring(1, rootFile.length)
               }
-              this.opf = `${process.env.VUE_APP_EPUB_OPF_URL}/${fileName}/${rootFile}`
+              this.opf = `${process.env.VUE_APP_EPUB_OPF_URL}/${this.fileName}/${rootFile}`
               this.parseBook(this.opf)
             } else {
               this.showToast(response.data.msg)
             }
           })
         }
-        this.bookShelf = getLocalStorage('bookShelf')
       },
       back() {
         this.$router.go(-1)

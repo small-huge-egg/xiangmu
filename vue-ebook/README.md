@@ -567,7 +567,33 @@ this.flapCardList.forEach((item, index) => {
 * 安装：`cnpm i mockjs --D`
 * 替换原生的XMLHttpRequest,使用简便
 * 丰富的数据类型
-* 无法支持blob类型，无法模拟下载
+* 无法支持blob类型，无法模拟下载,以至于无法正常展示电子书
+  * 所以用另一种方法模拟接口：在vue.config.js中添加自定义接口
+```javaScript
+function mock(app, url, data) {
+  app.get(url, (request, response) => {
+    response.json(data)
+  })
+}
+const homeData = require('./src/mock/bookHome')
+const shelfData = require('./src/mock/bookShelf')
+const listData = require('./src/mock/bookList')
+const flatListData = require('./src/mock/bookFlatList')
+module.exports = {
+  baseUrl: process.env.NODE_ENV === 'production'
+    ? './'
+    : '/',
+    devServer: {
+      before(app) {
+        mock(app, '/book/home', homeData)
+        mock(app, '/book/shelf', shelfData)
+        mock(app, '/book/list', listData)
+        mock(app, '/book/flat-list', flatListData)
+      }
+    }
+}
+
+```
 * 引入：`import Mock from 'mockjs'`
 
 

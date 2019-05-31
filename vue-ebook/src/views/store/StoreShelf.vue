@@ -15,7 +15,7 @@ import ShelfSearch from '@/components/shelf/ShelfSearch'
 import ShelfList from '@/components/shelf/ShelfList'
 import Scroll from '@/components/common/Scroll'
 import { storeShelfMixin } from '../../utils/mixin'
-// import { shelf } from '../../api/store'
+import { shelf } from '../../api/store'
 
 export default {
   mixins: [storeShelfMixin],
@@ -28,7 +28,19 @@ export default {
   methods: {
     onScroll(offsetY) {
       this.setOffsetY(offsetY)
+    },
+    getShelftList() {
+      shelf().then(response => {
+        if (response.status === 200 && response.data && response.data.bookList) {
+          this.setShelfList(response.data.bookList)
+          console.log('12')
+          console.log(response)
+        }
+      })
     }
+  },
+  mounted() {
+    this.getShelftList()
   }
 }
 </script>

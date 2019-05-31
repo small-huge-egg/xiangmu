@@ -28,7 +28,7 @@
                   :placeholder="$t('home.hint')"
                   v-model="searchText"
                   @click="showHotSearch"
-                  @key.13.exact="search">
+                  @keyup.13.exact="search">
         </div>
       </div>
     </div>
