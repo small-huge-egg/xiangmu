@@ -623,6 +623,39 @@ module.exports = {
 >点击搜索框滑动窗口搜索框位置固定不滑动，未点击则会被滑动
 * 那么就给全局除了头部不加滚动，其余都加，然后点击搜索框时，给搜索框外部组件加个class，设置为position=fixed
 * 上述虽然成功实现，但是底下的滚动地带会被覆盖掉一部分，于是将滚动地带设置为绝对定位，给个top,这样不管怎么滚动我都离顶部一定距离，但是注意index的值要改小
+> 一个三列布局，想让他们彼此之间和两边的都留有5像素，设置flex和33.33%，然后设置padding: 5px造成中间间隙过大问题
+* 利用伪类nth-child()分别设置对应项padding
+```css
+.shelf-item-category-item {
+  flex: 0 0 33.33%;
+  width: 33.33%;
+  height: 33.33%;
+  box-sizing: border-box;
+  &:nth-child(3n+1) {
+    padding: 0 px2rem(2.5) px2rem(5) px2rem(5);
+  }
+  &:nth-child(3n+2) {
+    padding: 0 px2rem(2.5) px2rem(5) px2rem(2.5);
+  }
+  &:nth-child(3n+3) {
+    padding: 0 px2rem(5) px2rem(5) px2rem(2.5);
+  }
+```
+> 书架不同目录的生成
+* 采用动态路由`<component :is="item" :data="data"></component>`
+* 通过给item绑定计算属性，判断type=1\2\3情况下的返回值（data中定义的组件值）
+```javaScript
+item() {
+  return this.data.type === 1 ? this.book : (this.data.type === 2 ? this.category : this.add)
+}
+```
+
+
+
+
+
+
+
 
 
 # 难点：

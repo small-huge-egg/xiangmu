@@ -13,7 +13,7 @@
       </div>
       <!-- 编辑 -->
       <div class="shelf-title-btn-wrapper shelf-title-right">
-        <span class="shelf-title-btn-text" @click="onEditClick">{{$t('shelf.edit')}}</span>
+        <span class="shelf-title-btn-text" @click="onEditClick">{{isEditMode ? $t('shelf.cancel') : $t('shelf.edit')}}</span>
       </div>
     </div>
   </transition>

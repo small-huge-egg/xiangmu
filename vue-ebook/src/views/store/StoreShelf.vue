@@ -15,6 +15,7 @@ import ShelfSearch from '@/components/shelf/ShelfSearch'
 import ShelfList from '@/components/shelf/ShelfList'
 import Scroll from '@/components/common/Scroll'
 import { storeShelfMixin } from '../../utils/mixin'
+import { appendAddToShelf } from '../../utils/store'
 import { shelf } from '../../api/store'
 
 export default {
@@ -32,9 +33,7 @@ export default {
     getShelftList() {
       shelf().then(response => {
         if (response.status === 200 && response.data && response.data.bookList) {
-          this.setShelfList(response.data.bookList)
-          console.log('12')
-          console.log(response)
+          this.setShelfList(appendAddToShelf(response.data.bookList))
         }
       })
     }

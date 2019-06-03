@@ -7,10 +7,6 @@
 export default {
   props: {
     data: Object
-  },
-  mounted() {
-    console.log('555')
-    console.log(this.data)
   }
 }
 </script>

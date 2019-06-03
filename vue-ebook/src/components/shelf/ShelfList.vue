@@ -3,7 +3,7 @@
     <div class="shelf-list-item-wrapper" v-for="item in shelfList" :key="item.id">
       <shelf-item :data="item" :style="{height: itemHeight}"></shelf-item>
       <div class="shelf-list-title-wrapper">
-        <span class="shelf-list-title title-small"></span>
+        <span class="shelf-list-title title-small">{{item.title}}</span>
       </div>
     </div>
   </div>
@@ -19,7 +19,6 @@ export default {
   },
   computed: {
     itemHeight() {
-      console.log(this.shelfList)
       return ((window.innerWidth - realPx(120)) / 3) / 250 * 350 + 'px'
     }
   }
