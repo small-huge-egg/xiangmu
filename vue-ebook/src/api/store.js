@@ -1,5 +1,8 @@
 import axios from 'axios'
 
+export function download(book, onSuccess, onError, onProgress) {
+}
+
 export function flatList() {
   return axios({
     method: 'get',

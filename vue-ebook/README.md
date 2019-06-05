@@ -36,6 +36,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 # 插件：
 * 安装localstorage库
   * `cnpm i --save web-storage-cache`
+* 安装create-api
+  * `cnpm i --save create-api`
 # 关于epub
 * cnpm i --save epubjs
 ```javaScript
@@ -641,7 +643,7 @@ module.exports = {
     padding: 0 px2rem(5) px2rem(5) px2rem(2.5);
   }
 ```
-> 书架不同目录的生成
+> 书架不同书籍标签的生成
 * 采用动态路由`<component :is="item" :data="data"></component>`
 * 通过给item绑定计算属性，判断type=1\2\3情况下的返回值（data中定义的组件值）
 ```javaScript
@@ -822,6 +824,13 @@ onMouseEnd(e) {
 
 
 
+# create-api
+> 弹出层，popup遮罩层有时多个组件都需要他们，使用create-api可以避免每次都设置visible,并且可以独立设置参数与方法
+
+# 浏览器数据库indexedDB
+> 由于cookie和localStorage的存储内存小，所以诞生了indexedDB
+* 安装localforage（操作indexedDB的库）
+  * cnpm i -S localforage
 
 # 坑
 ### 为了其它组件获取这本书从而改变这本书下的一些样式，如字体大小，背景等，于是我在vuex定义了一个currentBook，设置了mutation,getter,action,并在初始化这本书的时候`this.setCurrentBook=this.book`,但是我在其它组件上调用currentBook的时候为空，vuex上也显示currentBook为空，于是找错
@@ -835,6 +844,29 @@ onMouseEnd(e) {
 >这里告诉我报错在某个页面，但一直没有从中找到3的信息，后几天突然想到book.js中的section=3，于是改为0，不再报错
 >报错' Cannot read property 'section' of null"',但是显示错误在另一个页面，vue的浏览器插件能够正常显示section,于是百度发现，应该是逻辑问题
 * 只需添加判断if(this.section){}即可
+### 不得不说一个可能遇到的一个bug
+> 由于定义了一个滚动组件，并且给该组件定义了reset方法，父组件给该组件传递bottom值要根据具体情况而定，因此采用监听来改变bottom的值，注意放在任务队列里，因为涉及到了dom操作，不能立马触发更新
+```javaScript
+data() {
+  return {
+    scrollBottom: 0
+  }
+},
+watch: {
+  isEditMode(isEditMode) { // 监听是否处于编辑模式，从而改变bottom的值
+    this.scrollBottom = isEditMode ? 48 : 0
+    this.$nextTick(() => { // 记得更新哦
+      this.$refs.scroll.refresh()
+    })
+  }
+},
+```
+
+
+
+
+
+
 # 总结
 1. 建立框架页面index.vue
 2. 通过动态路由动态的向EbookReader.vue组件传入电子书的路径

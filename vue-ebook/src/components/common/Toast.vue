@@ -10,6 +10,7 @@
 
 <script>
   export default {
+    name: 'toast',
     props: {
       text: [String, Number],
       timeout: {

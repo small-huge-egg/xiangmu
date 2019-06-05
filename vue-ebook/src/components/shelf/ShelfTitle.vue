@@ -46,7 +46,13 @@ export default {
   },
   methods: {
     // 点击‘编辑’
-    onEditClick() {
+    onEditClick() { // 保存编辑模式，并清除之前的编辑状态
+      if (!this.isEditMode) {
+        this.setShelfSelected([])
+        this.shelfList.forEach(item => {
+          item.selected = false
+        })
+      }
       this.setIsEditMode(!this.isEditMode)
     },
 
