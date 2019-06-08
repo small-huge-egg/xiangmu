@@ -132,9 +132,11 @@ export function setBookObject(fileName, key, value) {
 }
 
 export function saveBookShelf(shelf) {
+  console.log('保存')
   return setLocalStorage('shelf', shelf)
 }
 
 export function getBookShelf() {
+  console.log('过去')
   return getLocalStorage('shelf')
 }

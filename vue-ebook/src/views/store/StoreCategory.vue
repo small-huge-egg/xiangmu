@@ -1,31 +1,31 @@
 <template>
   <div>
     <div class="store-shelf">
-      <shelf-title :title="$t('shelf.title')"></shelf-title>
-      <scroll class="store-shelf-scroll-wrapper" :top="0" :bottom="scrollBottom" @onScroll="onScroll" ref="scroll">
-        <shelf-search></shelf-search>
-        <shelf-list :data="shelfList"></shelf-list>
+      <shelf-title :title="shelfCategory.title"></shelf-title>
+      <scroll class="store-shelf-scroll-wrapper"
+              :top="0" :bottom="scrollBottom" @onScroll="onScroll" ref="scroll"
+              v-if="ifShowList">
+        <shelf-list :top="42" :data="shelfCategory.itemList"></shelf-list>
       </scroll>
+      <div class="store-shelf-empty-view" v-else>{{$t('shelf.groupNone')}}</div>
       <shelf-footer></shelf-footer>
     </div>
   </div>
 </template>
 <script>
 import ShelfTitle from '@/components/shelf/ShelfTitle'
-import ShelfSearch from '@/components/shelf/ShelfSearch'
 import ShelfList from '@/components/shelf/ShelfList'
 import Scroll from '@/components/common/Scroll'
 import ShelfFooter from '@/components/shelf/ShelfFooter'
 import { storeShelfMixin } from '../../utils/mixin'
-// import { appendAddToShelf } from '../../utils/store'
-// import { shelf } from '../../api/store'
+import { appendAddToShelf } from '../../utils/store'
+import { shelf } from '../../api/store'
 
 export default {
   mixins: [storeShelfMixin],
   components: {
     ShelfTitle,
     Scroll,
-    ShelfSearch,
     ShelfList,
     ShelfFooter
   },
@@ -42,13 +42,26 @@ export default {
       })
     }
   },
+  computed: {
+    ifShowList() {
+      return this.shelfCategory.itemList && this.shelfCategory.itemList.length > 0
+    }
+  },
   methods: {
     onScroll(offsetY) {
       this.setOffsetY(offsetY)
+    },
+    getShelftList() {
+      shelf().then(response => {
+        if (response.status === 200 && response.data && response.data.bookList) {
+          this.setShelfList(appendAddToShelf(response.data.bookList))
+        }
+      })
     }
   },
   mounted() {
-    this.getShelfList()
+    this.getCategoryList(this.$route.query.title)
+    this.setCurrentType(2)
   }
 }
 </script>
@@ -65,6 +78,16 @@ export default {
       top: 0;
       left: 0;
       z-index: 101;
+    }
+    .store-shelf-empty-view {
+      position: absolute;
+      top: 50;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: px2rem(14);
+      color: #333;
+      @include center;
     }
   }
 </style>

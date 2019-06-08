@@ -1,5 +1,5 @@
 <template>
-  <div class="popup" v-if="popupVisible">
+  <div class="popup" v-show="popupVisible">
     <transition name="fade">
       <div class="popup-bg" @click.stop.prevent="hide" v-show="popupVisible"></div>
     </transition>
@@ -30,17 +30,17 @@ export default {
     btn: Array
   },
   methods: {
-    show() {
-      this.popupVisible = true
-      setTimeout(() => {
-        this.visible = true
-      })
-    },
     hide() {
       this.visible = false
       setTimeout(() => {
         this.popupVisible = false
       }, 200)
+    },
+    show() {
+      this.popupVisible = true
+      setTimeout(() => {
+        this.visible = true
+      })
     }
   }
 }

@@ -11,7 +11,9 @@ export const storeShelfMixin = {
       'shelfList',
       'shelfSelected',
       'shelfTitleVisible',
-      'offsetY'
+      'offsetY',
+      'shelfCategory',
+      'currentType'
     ])
   },
   methods: {
@@ -20,7 +22,9 @@ export const storeShelfMixin = {
       'setShelfList',
       'setShelfSelected',
       'setShelfTitleVisible',
-      'setOffsetY'
+      'setOffsetY',
+      'setShelfCategory',
+      'setCurrentType'
     ]),
     showBookDetail(book) {
       gotoBookDetail(this, book)

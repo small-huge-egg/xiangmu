@@ -57,25 +57,31 @@ const actions = {
     return commit('SET_OFFSETY', offsetY)
   },
   setSpeakingIconBottom({ commit }, speakingIconBottom) {
-    commit('SET_SPEAKING_ICON_BOTTOM', speakingIconBottom)
+    return commit('SET_SPEAKING_ICON_BOTTOM', speakingIconBottom)
   },
   setHotSearchOffsetY({ commit }, hotSearchOffsetY) {
-    commit('SET_HOT_SEARCH_OFFSETY', hotSearchOffsetY)
+    return commit('SET_HOT_SEARCH_OFFSETY', hotSearchOffsetY)
   },
   setFlapCardVisible({ commit }, flapCardVisible) {
-    commit('SET_FLAP_CARD_VISIBLE', flapCardVisible)
+    return commit('SET_FLAP_CARD_VISIBLE', flapCardVisible)
   },
   setIsEditMode({ commit }, isEditMode) {
-    commit('SET_IS_EDIT_MODE', isEditMode)
+    return commit('SET_IS_EDIT_MODE', isEditMode)
   },
   setShelfList({ commit }, list) {
-    commit('SET_SHELF_LIST', list)
+    return commit('SET_SHELF_LIST', list)
   },
   setShelfSelected({ commit }, selected) {
-    commit('SET_SHELF_SELECTED', selected)
+    return commit('SET_SHELF_SELECTED', selected)
   },
   setShelfTitleVisible({ commit }, visible) {
-    commit('SET__SHELF_TITLE_VISIBLE', visible)
+    return commit('SET_SHELF_TITLE_VISIBLE', visible)
+  },
+  setShelfCategory({ commit }, category) {
+    return commit('SET_SHELF_CATEGORY', category)
+  },
+  setCurrentType({ commit }, type) {
+    return commit('SET_CURRENT_TYPE', type)
   }
 }
 export default actions

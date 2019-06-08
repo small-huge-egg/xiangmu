@@ -651,7 +651,39 @@ item() {
   return this.data.type === 1 ? this.book : (this.data.type === 2 ? this.category : this.add)
 }
 ```
-
+> 移除书架
+```javaScript
+moveToGroup(group) {
+  this.setShelfList(this.shelfList // 这里是个二维数组
+    .filter(book => {
+      if (book.itemList) { // 如果某一项还有itemList,过滤掉被选择的图书
+        book.itemList = book.itemList.filter(subBook => this.shelfSelected.indexOf(subBook) < 0)
+      }
+      return this.shelfSelected.indexOf(book) < 0
+    }))
+    .then(() => {
+      if (group && group.itemList) { // 数组的解构与重组，将选中的图书加到新分组里
+        group.itemList = [...group.itemList, ...this.shelfSelected]
+      }
+      group.itemList.forEach((item, index) => {
+        item.id = index + 1
+      })
+      this.simpleToast(this.$t('shelf.moveBookInSuccess').replace('$1', group.title))
+      this.onComplete()
+    })
+},
+```
+# 移动端适配
+```css
+@mixin scroll {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch; // 移动端滚动哦
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+```
 
 
 
@@ -686,6 +718,78 @@ this.book.loaded.navigation.then((nav) => { // 获取到全书章节之后
   this.setNavigation(navItem)
 })
 ```
+
+### 关于下载书籍
+> 不得不提这里的toast组件居然可以直接拿来用(create-api插件的妙处，使其按需生成组件)，即使用this.toast就行，然后就可以直接调用toast组件的方法了
+```javaScript
+// create-api.js
+Vue.mixin({
+  methods: {
+    toast(settings) {
+      return this.$createToast({
+        $props: settings
+      })
+    },
+    simpleToast(text) {
+      this.toast({
+        text: text
+      }).show()
+    },
+    popup(settings) {
+      return this.$createPopup({
+        $props: settings
+      })
+    }
+  }
+})
+// shelfFooter.vue
+downloadBook(book) { // 下载指定图书
+  let text = ''
+  const toast = this.toast({
+    text
+  })
+  toast.continueShow() // 调用toast的持续可见方法
+  return new Promise((resolve, reject) => {
+    download(book, () => { // 成功
+      console.log('下载完毕')
+      resolve(book)
+    }, reject, ProgressEvent => { // 下载进度
+      const progress = Math.floor(ProgressEvent.loaded / ProgressEvent.total * 100) + '%'
+      text = this.$t('shelf.progressDownload').replace('$1', `${book.fileName}.epub(${progress})`)
+      toast.updateText(text) // 实时更新文字
+    })
+  })
+}
+
+// store.js
+export function download(book, onSuccess, onError, onProgress) {
+  if (!onProgress) {
+    onProgress = onError
+    onError = null
+  }
+  return axios.create({ // 采用axios的create方法传递参数设置响应类型
+    baseURL: process.env.VUE_APP_EPUB_URL,
+    method: 'get',
+    responseType: 'blob', // 设置响应类型
+    timeout: 180 * 1000, // 下载超时时间
+    onDownloadProgress: ProgressEvent => { // 下载进度
+      if (onProgress) onProgress(ProgressEvent)
+    }
+  }).get(`${book.categoryText}/${book.fileName}.epub`).then(res => {
+    const blob = new Blob([res.data])
+    setLocalForage(book.fileName, blob, () => {
+      if (onSuccess) onSuccess(book)
+    }, err => {
+      if (onError) onError(err)
+    })
+  }).catch(err => {
+    if (onError) onError(err)
+  })
+}
+```
+
+
+
 
 
 

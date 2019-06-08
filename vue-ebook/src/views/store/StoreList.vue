@@ -71,7 +71,6 @@
         list().then(response => {
           this.list = response.data.data
           this.total = response.data.total
-          console.log(this.list)
           const category = this.$route.query.category
           const keyword = this.$route.query.keyword
           if (category) {

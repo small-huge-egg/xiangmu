@@ -20,16 +20,29 @@ import Epub from 'epubjs'
 import { ebookMixin } from '../../utils/mixin'
 import { getFontFamily, saveFontFamily, getFontSize, saveFontSize, getTheme, saveTheme, getLocation } from '../../utils/localStorage'
 import { flatten } from '../../utils/book'
+import { getLocalForage } from '../../utils/localForage'
 
 global.epub = Epub
 
 export default {
   mixins: [ebookMixin],
   mounted() {
-    this.setFileName(this.$route.params.fileName.split('|').join('/'))
-      .then(() => { // 异步调用，所以用action
-        this.initEpub()
-      })
+    const books = this.$route.params.fileName.split('|')
+    const fileName = books[1]
+    getLocalForage(fileName, (err, blob) => {
+      if (!err && blob) { // 如果找到离线的电子书
+        console.log('okok')
+        this.setFileName(books.join('/')).then(() => {
+          this.initEpub(blob)
+        })
+      } else {
+        console.log('在线获取电子书')
+        this.setFileName(books.join('/')).then(() => {
+            const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
+            this.initEpub(url)
+          })
+      }
+    })
   },
   methods: {
     // 鼠标进入
@@ -248,8 +261,7 @@ export default {
     },
 
     // 初始化书
-    initEpub() { // 初始化渲染电子书
-      const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
+    initEpub(url) { // 初始化渲染电子书
       this.book = new Epub(url)
       this.$store.commit('SET_CURRENT_BOOK', this.book)
       this.$store.dispatch('setCurrentBook', this.book)

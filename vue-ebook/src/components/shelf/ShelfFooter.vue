@@ -18,8 +18,9 @@
 </template>
 <script>
 import { storeShelfMixin } from '../../utils/mixin'
-import { saveBookShelf } from '../../utils/localStorage'
+import { saveBookShelf, removeLocalStorage } from '../../utils/localStorage'
 import { download } from '../../api/store'
+import { removeLocalForage } from '../../utils/localForage'
 export default {
   mixins: [storeShelfMixin],
   data() {
@@ -121,6 +122,7 @@ export default {
           this.showDownload() // 点击第2项
           break
         case 3:
+        this.dialog().show()
           break
         case 4:
           this.showRemove()
@@ -164,33 +166,56 @@ export default {
       })
       this.popupDownload.show()
     },
-    setDownload() { // 下载电子书
-      // let isDownload
-      // if (this.isDownload) {
-      //   isDownload = false
-      // } else {
-      //   isDownload = true
-      // }
-      // this.shelfSelected.forEach(book => {
-      //   book.cache = isDownload
-      // })
-      this.downloadSelectedBook() // 下载勾选的图书
+    removeSelectedBook() {
+      Promise.all(this.shelfSelected.map(book => this.removeBook(book)))
+        .then(books => {
+          books.map(book => {
+            book.cache = false
+          })
+          saveBookShelf(this.shelfList)
+          this.simpleToast(this.$t('shelf.removeDownloadSuccess'))
+        })
+    },
+    removeBook(book) {
+      return new Promise((resolve, reject) => {
+        removeLocalStorage(`${book.categoryText}/${book.fileName}-info`)
+        removeLocalForage(`${book.fileName}`)
+        resolve(book)
+      })
+    },
+    async setDownload() { // 下载电子书(变为同步方法)
       this.onComplate()
-      // if (isDownload) {
-      //   this.simpleToast(this.$t('shelf.setDownloadSuccess'))
-      // } else {
-      //   this.simpleToast(this.$t('shelf.closeDownloadSuccess'))
-      // }
+      if (this.isDownload) {
+        this.removeSelectedBook()
+      } else {
+        await this.downloadSelectedBook() // 下载勾选的图书
+        saveBookShelf(this.shelfList)
+        this.simpleToast(this.$t('shelf.setDownloadSuccess'))
+      }
     },
     hideDownload() {},
-    downloadSelectedBook() { // 下载图书
+    async downloadSelectedBook() { // 下载图书
       for (let i = 0; i < this.shelfSelected.length; i++) {
-        this.downloadBook(this.shelfSelected[i])
+        await this.downloadBook(this.shelfSelected[i]) // 下载图书
+          .then(book => {
+            book.cache = true
+          })
       }
     },
     downloadBook(book) { // 下载指定图书
+      let text = ''
+      const toast = this.toast({
+        text
+      })
+      toast.continueShow() // 调用toast的持续可见方法
       return new Promise((resolve, reject) => {
-        download(book, () => {
+        download(book, () => { // 成功,下载完毕
+          toast.remove()
+          resolve(book)
+        }, reject, ProgressEvent => { // 下载进度
+          const progress = Math.floor(ProgressEvent.loaded / ProgressEvent.total * 100) + '%'
+          text = this.$t('shelf.progressDownload').replace('$1', `${book.fileName}.epub(${progress})`)
+          toast.updateText(text) // 实时更新文字
         })
       })
     },
