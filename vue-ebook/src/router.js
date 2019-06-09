@@ -22,7 +22,7 @@ export default new Router({
     {
       path: '/store',
       component: () => import('./views/store/index.vue'),
-      redirect: '/store/shelf',
+      redirect: '/store/home',
       children: [
         {
           path: 'shelf',
@@ -43,6 +43,10 @@ export default new Router({
         {
           path: 'detail',
           component: () => import('./views/store/StoreDetail.vue')
+        },
+        {
+          path: 'speaking',
+          component: () => import('./views/store/StoreSpeaking.vue')
         }
       ]
     }

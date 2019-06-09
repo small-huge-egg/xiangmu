@@ -31,14 +31,12 @@ export default {
     const fileName = books[1]
     getLocalForage(fileName, (err, blob) => {
       if (!err && blob) { // 如果找到离线的电子书
-        console.log('okok')
         this.setFileName(books.join('/')).then(() => {
           this.initEpub(blob)
         })
       } else {
-        console.log('在线获取电子书')
         this.setFileName(books.join('/')).then(() => {
-            const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
+            const url = process.env.VUE_APP_EPUB_URL + '/' + this.fileName + '.epub'
             this.initEpub(url)
           })
       }
@@ -207,9 +205,7 @@ export default {
           contents.addStylesheet(`${process.env.VUE_APP_RES_URL}/fonts/cabin.css`),
           contents.addStylesheet(`${process.env.VUE_APP_RES_URL}/fonts/montserrat.css`),
           contents.addStylesheet(`${process.env.VUE_APP_RES_URL}/fonts/tangerine.css`)
-        ]).then(() => {
-          console.log('字体已经全部加在完毕')
-        })
+        ])
       })
     },
 
@@ -279,9 +275,11 @@ export default {
             const loc = item.match(/\[(.*)\]!/)[1]
             this.navigation.forEach(nav => {
               if (nav.href) {
-                const href = nav.href.match(/^(.*)\.html$/)[1]
-                if (href === loc) {
-                  nav.pageList.push(item)
+                const href = nav.href.match(/^(.*)\.html$/)
+                if (href) {
+                  if (href[1] === loc) {
+                    nav.pageList.push(item)
+                  }
                 }
               }
             })

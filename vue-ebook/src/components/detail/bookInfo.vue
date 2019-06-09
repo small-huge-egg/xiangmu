@@ -24,9 +24,6 @@
       title: String,
       author: String,
       desc: String
-    },
-    created() {
-      console.log(this.cover)
     }
   }
 </script>

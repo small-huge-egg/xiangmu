@@ -90,25 +90,24 @@ export default {
         this.simpleToast(this.$t('shelf.closePrivateSuccess'))
       }
     },
-    showPrivate() { // 展示私密阅读的弹窗
-      this.popupMenu = this.popup({ // 调用弹窗组件，并传值
+    showPrivate() {
+      this.popupMenu = this.popup({
         title: this.isPrivate ? this.$t('shelf.closePrivateTitle') : this.$t('shelf.setPrivateTitle'),
         btn: [
           {
             text: this.isPrivate ? this.$t('shelf.close') : this.$t('shelf.open'),
-            click: () => { // 点击打开，建立私密阅读
+            click: () => {
               this.setPrivate()
             }
           },
           {
             text: this.$t('shelf.cancel'),
-            click: () => { // 点击取消，隐藏弹出曾
+            click: () => {
               this.hidePopup()
             }
           }
         ]
-      })
-      this.popupMenu.show()
+      }).show()
     },
     onTabClick(item) { // 点击某一项
       if (!this.isSelected) {
@@ -146,26 +145,25 @@ export default {
       this.setIsEditMode(false) // 退出编辑模式
       saveBookShelf(this.shelfList) // 更改完状态后保存书架图书信息
     },
-    showDownload () { // 展示下载的弹窗
-      this.popupDownload = this.popup({ // 调用弹窗组件，并传值
-        title: this.isDownload ? this.$t('shelf.removeDownloadTitle') : this.$t('shelf.setDownloadTitle'),
-        btn: [
-          {
-            text: this.isDownload ? this.$t('shelf.delete') : this.$t('shelf.open'),
-            click: () => { // 点击打开，建立下载弹窗
-              this.setDownload()
+    showDownload() {
+        this.popupMenu = this.popup({
+          title: this.isDownload ? this.$t('shelf.removeDownloadTitle') : this.$t('shelf.setDownloadTitle'),
+          btn: [
+            {
+              text: this.isDownload ? this.$t('shelf.delete') : this.$t('shelf.open'),
+              click: () => {
+                this.setDownload()
+              }
+            },
+            {
+              text: this.$t('shelf.cancel'),
+              click: () => {
+                this.hidePopup()
+              }
             }
-          },
-          {
-            text: this.$t('shelf.cancel'),
-            click: () => { // 点击取消，隐藏下载弹出
-              this.hidePopup()
-            }
-          }
-        ]
-      })
-      this.popupDownload.show()
-    },
+          ]
+        }).show()
+      },
     removeSelectedBook() {
       Promise.all(this.shelfSelected.map(book => this.removeBook(book)))
         .then(books => {

@@ -684,7 +684,23 @@ moveToGroup(group) {
   }
 }
 ```
-
+# 音频播放器
+> 通过给input绑定change事件，监听input改变；通过给input绑定value,动态改变背景尺寸
+```javaScript
+<input class="progress" type="range"
+      max="100"
+      min="0"
+      step="1"
+      @change="onProgressChange($event.target.value)"
+      @input="onProgressInput($event.target.value)"
+      :value="progress"
+      ref="progress">
+onProgressInput(progress) {
+  this.progress = progress
+  this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`
+},
+```
+> audio组件隐藏，但是audio的功能任然存在
 
 
 
@@ -1006,3 +1022,5 @@ watch: {
 * 实现添加书签功能，注意如何获取书签文本内容
 * 删除书签功能，通过filter方法
 12. 添加了书签功能对鼠标事件的支持
+
+# 构建项目

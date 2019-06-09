@@ -204,7 +204,6 @@
       clearCache() {
         clearLocalStorage()
         clearLocalForage(() => {
-          console.log('清除localForage成功...')
           this.getBookShelf()
         })
         this.showToast(this.$t('shelf.clearCacheSuccess'))
@@ -236,11 +235,9 @@
         return new Promise((resolve, reject) => {
           getLocalForage(item.fileName, (err, value) => {
             if (!err && value instanceof Blob) {
-              console.log(`[${item.fileName}]读取成功...`, value, new Epub(value))
               resolve()
             } else {
               download(item, item => {
-                console.log('[' + item.fileName + ']下载成功...')
                 resolve()
               }, reject, reject, progressEvent => {
                 const progress = Math.floor(progressEvent.loaded / progressEvent.total * 100) + '%'
@@ -277,7 +274,6 @@
         }
         this.onEditClick(false)
         this.saveBookShelfToLocalStorage()
-        console.log('数据保存成功...')
       },
       async downloadItem(subItem, needDownload) {
         if (needDownload && subItem.selected) {

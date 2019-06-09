@@ -80,11 +80,15 @@
   import Toast from '../../components/common/Toast'
   import { detail } from '../../api/store'
   import { px2rem, realPx } from '../../utils/utils'
+  import { removeFromBookShelf, addToShelf } from '../../utils/store'
   import Epub from 'epubjs'
-
+  import { getLocalForage } from '../../utils/localForage'
+  import { getBookShelf, saveBookShelf } from '../../utils/localStorage'
+  import { storeShelfMixin } from '../../utils/mixin'
   global.ePub = Epub
 
   export default {
+    mixins: [storeShelfMixin],
     components: {
       DetailTitle,
       Scroll,
@@ -122,10 +126,10 @@
         return this.metadata ? this.metadata.creator : ''
       },
       inBookShelf() {
-        if (this.bookItem && this.bookShelf) {
+        if (this.bookItem && this.shelfList) {
           const flatShelf = (function flatten(arr) {
             return [].concat(...arr.map(v => v.itemList ? [v, ...flatten(v.itemList)] : v))
-          })(this.bookShelf).filter(item => item.type === 1)
+          })(this.shelfList).filter(item => item.type === 1)
           const book = flatShelf.filter(item => item.fileName === this.bookItem.fileName)
           return book && book.length > 0
         } else {
@@ -153,6 +157,14 @@
     },
     methods: {
       addOrRemoveShelf() {
+        if (this.inBookShelf) {
+          this.setShelfList(removeFromBookShelf(this.bookItem)).then(() => {
+            saveBookShelf(this.shelfList)
+          })
+        } else {
+          addToShelf(this.bookItem)
+          this.setShelfList(getBookShelf())
+        }
       },
       showToast(text) {
         this.toastText = text
@@ -160,10 +172,28 @@
       },
       readBook() {
         this.$router.push({
-          path: `/ebook/${this.categoryText}|${this.fileName}`
+          path: `/ebook/${this.bookItem.categoryText}|${this.fileName}`
         })
       },
       trialListening() {
+        getLocalForage(this.bookItem.fileName, (err, blob) => {
+          if (!err && blob && blob instanceof Blob) {
+            this.$router.push({
+              path: '/store/speaking',
+              query: {
+                fileName: this.bookItem.fileName
+              }
+            })
+          } else {
+            this.$router.push({
+              path: '/store/speaking',
+              query: {
+                fileName: this.bookItem.fileName,
+                opf: this.opf
+              }
+            })
+          }
+        })
       },
       read(item) {
         this.$router.push({
@@ -216,18 +246,14 @@
       init() {
         this.fileName = this.$route.query.fileName
         this.categoryText = this.$route.query.category
-        console.log('45')
         if (this.fileName) {
           detail({
             fileName: this.fileName
           }).then(response => {
-                                  console.log('45')
             if (response.status === 200 && response.data.error_code === 0 && response.data.data) {
               const data = response.data.data
               this.bookItem = data
-              console.log(response.data)
               this.cover = this.bookItem.cover
-              console.log(this.cover)
               let rootFile = data.rootFile
               if (rootFile.startsWith('/')) {
                 rootFile = rootFile.substring(1, rootFile.length)
@@ -269,6 +295,9 @@
     },
     mounted() {
       this.init()
+      if (!this.shelfList || this.shelfList.length === 0) {
+        this.getShelfList()
+      }
     }
   }
 </script>

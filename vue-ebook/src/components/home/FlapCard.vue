@@ -23,10 +23,10 @@
     <!-- 推荐书籍 -->
     <div class="book-card" :class="{'animation': runBookCardAnimation}" v-show="runBookCardAnimation">
       <div class="book-card-wrapper">
-        <div class="img-wrapper">
+        <div class="img-wrapper" v-if="data">
           <img class="img" :src="data.cover">
         </div>
-        <div class="content-wrapper">
+        <div class="content-wrapper" v-if="data">
           <div class="title">{{data.title}}</div>
           <div class="author sub-title-medium">{{data.author}}</div>
           <div class="category">{{categoryText()}}</div>
@@ -212,10 +212,6 @@ export default {
       } else {
         return ''
       }
-    },
-    // 点击立即阅读
-    showBookDetail(book) {
-
     }
   }
 }

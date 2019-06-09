@@ -97,7 +97,6 @@ export default {
         })
         saveBookmark(this.fileName, this.bookmark)
       })
-      console.log(currentLocation, cfibase, cfistart, cfiend, cfiRange)
     },
     removeBokmark() { // 删除书签
       const currentLocation = this.currentBook.rendition.currentLocation()

@@ -41,7 +41,7 @@
       return {
         scrollTop: 94,
         random: null,
-        banner: null, // 背景图片
+        banner: '', // 背景图片
         guessYouLike: null, // 猜你喜欢的书籍
         recommend: null,
         featured: null, // 精选书籍
@@ -82,7 +82,6 @@
           this.featured = data.featured
           this.categoryList = data.categoryList
           this.categories = data.categories
-          console.log(data)
         }
       })
     }
