@@ -1024,3 +1024,49 @@ watch: {
 12. 添加了书签功能对鼠标事件的支持
 
 # 构建项目
+> vue.config.js
+```javaScript
+configureWebpack: {
+  performance: {
+    hints: 'warning',
+    maxAssetSize: 524288,
+    maxEntrypointSize: 524288
+  }
+}
+```
+> 把资源文件放到engenx
+> 创建后端文件夹，安装express,mysql
+> 连接mysql
+* mysql提供的mysql.createConnection方法对数据库进行连接
+```javaScript
+const mysql = require('mysql')
+function connect() {
+  return mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    database: 'book'
+  })
+}
+```
+> 创建接口，获取数据库数据
+* mysql提供的query方法
+```javaScript
+// 创建接口，接收数据库返回的信息
+app.get('/book/list', (req, res) => {
+  const conn = connect()
+  conn.query('select * from book', (err, results) => {
+    if (err) {
+      res.json({
+        error_code: 1,
+        msg: '数据库失败'
+      })
+    } else {
+      res.json({
+        error_code: 0,
+        data: results
+      })
+    }
+    conn.end()
+  })
+})
+```
