@@ -147,7 +147,7 @@
       },
       onBookClick(item, index) {
         if (item.type === 3) {
-          this.$router.push('/book-store/home')
+          this.$router.push('/book/home')
         } else if (item.type === 1) {
           if (this.isEditMode) {
             item.selected = !item.selected
@@ -157,7 +157,7 @@
         } else if (item.type === 2) {
           if (!this.isEditMode) {
             this.$router.push({
-              path: '/book-store/category',
+              path: '/book/category',
               query: {
                 index: index
               }

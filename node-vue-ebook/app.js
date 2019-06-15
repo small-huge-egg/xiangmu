@@ -1,9 +1,10 @@
 const express = require('express')
 const mysql = require('mysql')
 const constant = require('./const')
+const cors = require('cors')
 
 const app = express()
-
+app.use(cors())
 
 app.get('/', (req, res) => {
   res.send(new Date())
@@ -21,21 +22,61 @@ function connect() {
 // 创建整体数据库数据接口，接收数据库返回的信息
 app.get('/book/list', (req, res) => {
   const conn = connect()
-  conn.query('select * from book', (err, results) => {
+  conn.query('select * from book where cover!=\'\'', (err, results) => {
     if (err) {
       res.json({
         error_code: 1,
-        msg: '数据库失败'
+        msg: '获取失败'
       })
     } else {
+      results.map(item => handleData(item))
+      const data = {}
+      constant.category.forEach(categoryText => {
+        data[categoryText] = results.filter(item => {
+          item.categoryText === categoryText
+        })
+      })
       res.json({
         error_code: 0,
-        data: results
+        msg: '获取成功',
+        data: data,
+        total: results.length
       })
     }
     conn.end()
   })
 })
+
+// 书架接口
+app.get('/book/shelf', (req, res) => {
+  res.json({
+    bookList: []
+  })
+})
+
+
+app.get('/book/flat-list', (req, res) => {
+  const conn = connect()
+  conn.query('select * from book where cover!=\'\'', (err, results) => {
+    if (err) {
+      res.json({
+        error_code: 1,
+        msg: '获取失败'
+      })
+    } else {
+      results.map(item => handleData(item))
+      res.json({
+        error_code: 0,
+        msg: '获取成功',
+        data: results,
+        total: results.length
+      })
+    }
+    conn.end()
+  })
+})
+
+
 
 // 创建一个书号的随机数组，为了猜你喜欢调用 
 function randomArray(n, l) {
@@ -48,7 +89,7 @@ function randomArray(n, l) {
 
 // 找出key值的书
 function createData(results, key) {
-  return handleData(results[key])
+  return handleData(results[key]) 
 }
 
 // 添加一些数据
@@ -62,6 +103,22 @@ function handleData(data) {
   data['haveRead'] = 0
   return data
 }
+
+// 创造目录id
+function createCategoryIds(n) {
+  const arr = []
+  constant.category.forEach((item, index) => {
+    arr.push(index + 1)
+  })
+  const result = []
+  for (let i = 0; i < n; i++) {
+    const ran = Math.floor(Math.random() * (arr.length - i))
+    result.push(arr[ran])
+    arr[ran] = arr[arr.length - i - 1]
+  }
+  return result
+}
+
 
 // 给猜你喜欢新增一些个性化数据
 function createGuessYouLike(data) {
@@ -101,7 +158,7 @@ function createCategoryData(data) {
       list: subList
     })
   })
-  return result
+  return result.filter(item => item.list.length === 4)
 }
 
 // 创建首页接口
@@ -112,11 +169,11 @@ app.get('/book/home', (req, res) => {
     const length = results.length // 封面不为空的图书个数
     // 建立需要返回的数据
     const guessYouLike = []
-    const banner = ''
+    const banner = constant.resUrl + '/home_banner.jpg'
     const recommend = []
     const featured = []
     const random = []
-    const categoryList = []
+    const categoryList = createCategoryData(results)
     const categories = [
       {
         category: 1,
@@ -286,6 +343,35 @@ app.get('/book/home', (req, res) => {
   })
 }) 
 
+// 创建图书详情页接口
+app.get('/book/detail', (req, res) => {
+  const conn = connect()
+  const fileName = req.query.fileName
+  const sql = `select * from book where fileName='${fileName}'`
+  conn.query(sql, (err, results) => {
+    if (err) {
+      res.json({
+        error_code: 1,
+        msg: '获取详情失败'
+      })
+    } else {
+      if (results && results.length === 0) {
+        res.json({
+          error_code: 1,
+          msg: '电子书详情获取失败'
+        })
+      } else {
+        const book = handleData(results[0])
+        res.json({
+          error_code: 0,
+          msg: '获取成功',
+          data: book
+        })
+      }
+    }
+    conn.end()
+  })
+})
 
 const server = app.listen(3000, () => {
   const host = server.address().address

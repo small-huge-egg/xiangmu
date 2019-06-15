@@ -210,7 +210,7 @@
       },
       onBookClick(item, index) {
         this.$router.push({
-          path: '/book-store/detail',
+          path: '/book/detail',
           query: {
             fileName: item.fileName,
             category: item.categoryText
