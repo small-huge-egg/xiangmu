@@ -1,0 +1,10 @@
+#vue_loading_plugin {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  transition: all 1s;
+  display: none;
+  opacity: 0;
+}
