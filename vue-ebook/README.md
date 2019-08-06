@@ -27,7 +27,9 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
-
+# 启动说明
+## npm run serve
+## 找到此电脑下c盘download的nginx,双击exe,在该目录下启动命令行。如果在3000端口可看见存入的数据，即可
 # 时间
 >2019.5.12 17:10
 ![](./img/1.png)

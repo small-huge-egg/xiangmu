@@ -307,7 +307,7 @@ router.get("/", function (req,res,next) {
 ```
 ## 关于前台排序
 ```javaScript
-// 点击价格排序 
+// 点击价格排序
 // GoodsList.vue
 data(){
   return{
