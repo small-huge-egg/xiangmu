@@ -1,0 +1,42 @@
+#vue_alert_plugin,#vue_plugin_confirm{
+  position: fixed;
+  top:100px;
+  left:50%;
+  transform: translateX(-50%);
+  max-width: 500px;
+  min-width:150px;
+  padding:20px;
+  border-radius: 10px;
+  background: white;
+  display: none;
+  box-shadow: 1px 1px 10px #666
+}
+#vue_alert_plugin div{
+  position: absolute;
+  top:0px; 
+  right:12px;
+  cursor: pointer;
+  font-size:20px
+}
+#vue_alert_plugin div:hover{
+  color:rgb(104,51,165)
+}
+p{
+  margin:0;
+  padding:0;
+}
+#vue_plugin_confirm button{
+  outline: 0;
+  background: #666;
+  color:white;
+  border:1px solid black;
+  margin-top:30px;
+  padding:5px;
+  margin-left:60px
+}
+#vue_plugin_confirm button:nth-child(3){
+  margin-left:10px
+}
+#vue_plugin_confirm button:hover{
+  background: rgb(104,51,165)
+}

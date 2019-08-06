@@ -20,7 +20,7 @@ Vue.use(VueLazyLoad, {
 
 
 Vue.use(infiniteScroll)
-
+ 
 var store = new Vuex.Store({
   state:{
     cartCount:0,// 购物车数量
